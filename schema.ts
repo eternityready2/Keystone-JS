@@ -27,6 +27,7 @@ import { document } from '@keystone-6/fields-document'
 import { type Lists } from '.keystone/types'
 
 import { Podcast } from './schemas/podcast';
+import { Episode } from './schemas/episode';
 
 
 export const lists = {
@@ -129,6 +130,7 @@ export const lists = {
     },
   }),
   Podcast,
+  Episode,
   // this last list is our Tag list, it only has a name field for now
   Tag: list({
     // WARNING

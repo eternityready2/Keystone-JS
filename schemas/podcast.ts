@@ -1,4 +1,3 @@
-// schemas/Podcast.ts
 import { list } from '@keystone-6/core';
 import { text, relationship, timestamp, integer } from '@keystone-6/core/fields';
 import { allowAll } from '@keystone-6/core/access';
@@ -48,6 +47,16 @@ export const Podcast = list({
         createView: { fieldMode: 'hidden' },
         itemView: { fieldMode: 'read' },
         listView: { fieldMode: 'read' },
+      },
+    }),
+    episodes: relationship({
+      ref: 'Episode.podcast',
+      many: true,
+      label: 'Episodes',
+      ui: {
+        // Hide the create and edit buttons within the relationship field
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
       },
     }),
     createdAt: timestamp({ defaultValue: { kind: 'now' } }),

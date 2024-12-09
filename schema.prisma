@@ -41,9 +41,29 @@ model Podcast {
   title         String    @default("")
   description   String    @default("")
   imageUrl      String    @default("")
+  episodes      Episode[] @relation("Episode_podcast")
   createdAt     DateTime? @default(now())
   updatedAt     DateTime? @default(now())
 
+  @@index([updatedAt])
+}
+
+model Episode {
+  id            String    @id @default(cuid())
+  title         String    @default("")
+  description   String    @default("")
+  audioUrl      String    @default("")
+  releaseDate   DateTime
+  duration      Int
+  podcast       Podcast?  @relation("Episode_podcast", fields: [podcastId], references: [id])
+  podcastId     String?   @map("podcast")
+  seasonNumber  Int?
+  episodeNumber Int?
+  explicit      String?   @default("no")
+  createdAt     DateTime? @default(now())
+  updatedAt     DateTime? @default(now())
+
+  @@index([podcastId])
   @@index([updatedAt])
 }
 

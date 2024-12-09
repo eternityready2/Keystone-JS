@@ -224,6 +224,8 @@ type Podcast {
   title: String
   description: String
   imageUrl: String
+  episodes(where: EpisodeWhereInput! = {}, orderBy: [EpisodeOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: EpisodeWhereUniqueInput): [Episode!]
+  episodesCount(where: EpisodeWhereInput! = {}): Int
   createdAt: DateTime
   updatedAt: DateTime
 }
@@ -245,6 +247,7 @@ input PodcastWhereInput {
   title: StringFilter
   description: StringFilter
   imageUrl: StringFilter
+  episodes: EpisodeManyRelationFilter
   createdAt: DateTimeNullableFilter
   updatedAt: DateTimeNullableFilter
 }
@@ -258,6 +261,12 @@ input IntFilter {
   gt: Int
   gte: Int
   not: IntFilter
+}
+
+input EpisodeManyRelationFilter {
+  every: EpisodeWhereInput
+  some: EpisodeWhereInput
+  none: EpisodeWhereInput
 }
 
 input PodcastOrderByInput {
@@ -283,8 +292,16 @@ input PodcastUpdateInput {
   title: String
   description: String
   imageUrl: String
+  episodes: EpisodeRelateToManyForUpdateInput
   createdAt: DateTime
   updatedAt: DateTime
+}
+
+input EpisodeRelateToManyForUpdateInput {
+  disconnect: [EpisodeWhereUniqueInput!]
+  set: [EpisodeWhereUniqueInput!]
+  create: [EpisodeCreateInput!]
+  connect: [EpisodeWhereUniqueInput!]
 }
 
 input PodcastUpdateArgs {
@@ -301,8 +318,145 @@ input PodcastCreateInput {
   title: String
   description: String
   imageUrl: String
+  episodes: EpisodeRelateToManyForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
+}
+
+input EpisodeRelateToManyForCreateInput {
+  create: [EpisodeCreateInput!]
+  connect: [EpisodeWhereUniqueInput!]
+}
+
+type Episode {
+  id: ID!
+  title: String
+  description: String
+  audioUrl: String
+  releaseDate: DateTime
+  duration: Int
+  podcast: Podcast
+  seasonNumber: Int
+  episodeNumber: Int
+  explicit: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input EpisodeWhereUniqueInput {
+  id: ID
+}
+
+input EpisodeWhereInput {
+  AND: [EpisodeWhereInput!]
+  OR: [EpisodeWhereInput!]
+  NOT: [EpisodeWhereInput!]
+  id: IDFilter
+  title: StringFilter
+  description: StringFilter
+  audioUrl: StringFilter
+  releaseDate: DateTimeFilter
+  duration: IntFilter
+  podcast: PodcastWhereInput
+  seasonNumber: IntNullableFilter
+  episodeNumber: IntNullableFilter
+  explicit: StringNullableFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
+}
+
+input DateTimeFilter {
+  equals: DateTime
+  in: [DateTime!]
+  notIn: [DateTime!]
+  lt: DateTime
+  lte: DateTime
+  gt: DateTime
+  gte: DateTime
+  not: DateTimeFilter
+}
+
+input IntNullableFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: IntNullableFilter
+}
+
+input StringNullableFilter {
+  equals: String
+  in: [String!]
+  notIn: [String!]
+  lt: String
+  lte: String
+  gt: String
+  gte: String
+  contains: String
+  startsWith: String
+  endsWith: String
+  not: StringNullableFilter
+}
+
+input EpisodeOrderByInput {
+  id: OrderDirection
+  title: OrderDirection
+  description: OrderDirection
+  audioUrl: OrderDirection
+  releaseDate: OrderDirection
+  duration: OrderDirection
+  seasonNumber: OrderDirection
+  episodeNumber: OrderDirection
+  explicit: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
+}
+
+input EpisodeUpdateInput {
+  title: String
+  description: String
+  audioUrl: String
+  releaseDate: DateTime
+  duration: Int
+  podcast: PodcastRelateToOneForUpdateInput
+  seasonNumber: Int
+  episodeNumber: Int
+  explicit: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input PodcastRelateToOneForUpdateInput {
+  create: PodcastCreateInput
+  connect: PodcastWhereUniqueInput
+  disconnect: Boolean
+}
+
+input EpisodeUpdateArgs {
+  where: EpisodeWhereUniqueInput!
+  data: EpisodeUpdateInput!
+}
+
+input EpisodeCreateInput {
+  title: String
+  description: String
+  audioUrl: String
+  releaseDate: DateTime
+  duration: Int
+  podcast: PodcastRelateToOneForCreateInput
+  seasonNumber: Int
+  episodeNumber: Int
+  explicit: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input PodcastRelateToOneForCreateInput {
+  create: PodcastCreateInput
+  connect: PodcastWhereUniqueInput
 }
 
 type Tag {
@@ -369,6 +523,12 @@ type Mutation {
   updatePodcasts(data: [PodcastUpdateArgs!]!): [Podcast]
   deletePodcast(where: PodcastWhereUniqueInput!): Podcast
   deletePodcasts(where: [PodcastWhereUniqueInput!]!): [Podcast]
+  createEpisode(data: EpisodeCreateInput!): Episode
+  createEpisodes(data: [EpisodeCreateInput!]!): [Episode]
+  updateEpisode(where: EpisodeWhereUniqueInput!, data: EpisodeUpdateInput!): Episode
+  updateEpisodes(data: [EpisodeUpdateArgs!]!): [Episode]
+  deleteEpisode(where: EpisodeWhereUniqueInput!): Episode
+  deleteEpisodes(where: [EpisodeWhereUniqueInput!]!): [Episode]
   createTag(data: TagCreateInput!): Tag
   createTags(data: [TagCreateInput!]!): [Tag]
   updateTag(where: TagWhereUniqueInput!, data: TagUpdateInput!): Tag
@@ -407,6 +567,9 @@ type Query {
   podcast(where: PodcastWhereUniqueInput!): Podcast
   podcasts(where: PodcastWhereInput! = {}, orderBy: [PodcastOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PodcastWhereUniqueInput): [Podcast!]
   podcastsCount(where: PodcastWhereInput! = {}): Int
+  episode(where: EpisodeWhereUniqueInput!): Episode
+  episodes(where: EpisodeWhereInput! = {}, orderBy: [EpisodeOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: EpisodeWhereUniqueInput): [Episode!]
+  episodesCount(where: EpisodeWhereInput! = {}): Int
   tag(where: TagWhereUniqueInput!): Tag
   tags(where: TagWhereInput! = {}, orderBy: [TagOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: TagWhereUniqueInput): [Tag!]
   tagsCount(where: TagWhereInput! = {}): Int
