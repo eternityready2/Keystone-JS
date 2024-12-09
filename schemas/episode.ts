@@ -6,14 +6,17 @@ import { allowAll } from '@keystone-6/core/access';
 export const Episode = list({
   access: {
     operation: {
-      query: allowAll, // Allow reading episodes
-      create: () => false, // Disallow creating episodes
-      update: () => false, // Disallow updating episodes
-      delete: () => false, // Disallow deleting episodes
+      query: allowAll, // Allow read access
+      create: () => false, // Disallow creation via Admin UI
+      update: () => false, // Disallow updates via Admin UI
+      delete: () => false, // Disallow deletion via Admin UI
     },
     filter: {
-      // No filters needed since all read operations are allowed
+      // No additional filters
     },
+  },
+  ui: {
+    isHidden: true, // Hide the Episode list from the Admin UI
   },
   fields: {
     title: text({
@@ -40,6 +43,11 @@ export const Episode = list({
       ref: 'Podcast.episodes',
       many: false,
       label: 'Podcast',
+      ui: {
+        // Display podcast title in the relationship field
+        displayMode: 'select',
+        labelField: 'title',
+      },
     }),
     seasonNumber: integer({
       label: 'Season Number',
