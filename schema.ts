@@ -26,6 +26,9 @@ import { document } from '@keystone-6/fields-document'
 // the generated types from '.keystone/types'
 import { type Lists } from '.keystone/types'
 
+import { Podcast } from './schemas/podcast';
+
+
 export const lists = {
   User: list({
     // WARNING
@@ -125,7 +128,7 @@ export const lists = {
       }),
     },
   }),
-
+  Podcast,
   // this last list is our Tag list, it only has a name field for now
   Tag: list({
     // WARNING

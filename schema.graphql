@@ -214,6 +214,97 @@ input TagRelateToManyForCreateInput {
   connect: [TagWhereUniqueInput!]
 }
 
+type Podcast {
+  id: ID!
+  rssFeedUrl: String
+  category: String
+  keywords: String
+  syncFrequency: Int
+  lastSyncedAt: DateTime
+  title: String
+  description: String
+  imageUrl: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input PodcastWhereUniqueInput {
+  id: ID
+}
+
+input PodcastWhereInput {
+  AND: [PodcastWhereInput!]
+  OR: [PodcastWhereInput!]
+  NOT: [PodcastWhereInput!]
+  id: IDFilter
+  rssFeedUrl: StringFilter
+  category: StringFilter
+  keywords: StringFilter
+  syncFrequency: IntFilter
+  lastSyncedAt: DateTimeNullableFilter
+  title: StringFilter
+  description: StringFilter
+  imageUrl: StringFilter
+  createdAt: DateTimeNullableFilter
+  updatedAt: DateTimeNullableFilter
+}
+
+input IntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: IntFilter
+}
+
+input PodcastOrderByInput {
+  id: OrderDirection
+  rssFeedUrl: OrderDirection
+  category: OrderDirection
+  keywords: OrderDirection
+  syncFrequency: OrderDirection
+  lastSyncedAt: OrderDirection
+  title: OrderDirection
+  description: OrderDirection
+  imageUrl: OrderDirection
+  createdAt: OrderDirection
+  updatedAt: OrderDirection
+}
+
+input PodcastUpdateInput {
+  rssFeedUrl: String
+  category: String
+  keywords: String
+  syncFrequency: Int
+  lastSyncedAt: DateTime
+  title: String
+  description: String
+  imageUrl: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+input PodcastUpdateArgs {
+  where: PodcastWhereUniqueInput!
+  data: PodcastUpdateInput!
+}
+
+input PodcastCreateInput {
+  rssFeedUrl: String
+  category: String
+  keywords: String
+  syncFrequency: Int
+  lastSyncedAt: DateTime
+  title: String
+  description: String
+  imageUrl: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
 type Tag {
   id: ID!
   name: String
@@ -272,6 +363,12 @@ type Mutation {
   updatePosts(data: [PostUpdateArgs!]!): [Post]
   deletePost(where: PostWhereUniqueInput!): Post
   deletePosts(where: [PostWhereUniqueInput!]!): [Post]
+  createPodcast(data: PodcastCreateInput!): Podcast
+  createPodcasts(data: [PodcastCreateInput!]!): [Podcast]
+  updatePodcast(where: PodcastWhereUniqueInput!, data: PodcastUpdateInput!): Podcast
+  updatePodcasts(data: [PodcastUpdateArgs!]!): [Podcast]
+  deletePodcast(where: PodcastWhereUniqueInput!): Podcast
+  deletePodcasts(where: [PodcastWhereUniqueInput!]!): [Podcast]
   createTag(data: TagCreateInput!): Tag
   createTags(data: [TagCreateInput!]!): [Tag]
   updateTag(where: TagWhereUniqueInput!, data: TagUpdateInput!): Tag
@@ -307,6 +404,9 @@ type Query {
   post(where: PostWhereUniqueInput!): Post
   posts(where: PostWhereInput! = {}, orderBy: [PostOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PostWhereUniqueInput): [Post!]
   postsCount(where: PostWhereInput! = {}): Int
+  podcast(where: PodcastWhereUniqueInput!): Podcast
+  podcasts(where: PodcastWhereInput! = {}, orderBy: [PodcastOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: PodcastWhereUniqueInput): [Podcast!]
+  podcastsCount(where: PodcastWhereInput! = {}): Int
   tag(where: TagWhereUniqueInput!): Tag
   tags(where: TagWhereInput! = {}, orderBy: [TagOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: TagWhereUniqueInput): [Tag!]
   tagsCount(where: TagWhereInput! = {}): Int
