@@ -41,13 +41,12 @@ model Episode {
   title         String    @default("")
   description   String    @default("")
   audioUrl      String    @default("")
-  releaseDate   DateTime
-  duration      Int
+  releaseDate   DateTime?
+  duration      Int?
   podcast       Podcast?  @relation("Episode_podcast", fields: [podcastId], references: [id])
   podcastId     String?   @map("podcast")
   seasonNumber  Int?
   episodeNumber Int?
-  explicit      String?   @default("no")
   createdAt     DateTime? @default(now())
   updatedAt     DateTime? @default(now())
 

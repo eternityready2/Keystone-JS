@@ -6,38 +6,57 @@ import { allowAll } from '@keystone-6/core/access';
 export const Episode = list({
   access: {
     operation: {
-      query: allowAll, // Allow read access
-      create: () => false, // Disallow creation via Admin UI
-      update: () => false, // Disallow updates via Admin UI
-      delete: () => false, // Disallow deletion via Admin UI
+      query: allowAll, // Allow read access for all contexts
+      create: ({ session, context }) => {
+        // Allow creation only from server-side processes
+        return !!context.sudo || !!session?.isServer;
+      },
+      update: ({ session, context }) => {
+        // Allow updates only from server-side processes
+        return !!context.sudo || !!session?.isServer;
+      },
+      delete: ({ session, context }) => {
+        // Allow deletion only from server-side processes
+        return !!context.sudo || !!session?.isServer;
+      },
     },
-    filter: {
-      // No additional filters
-    },
-  },
-  ui: {
-    isHidden: true, // Hide the Episode list from the Admin UI
   },
   fields: {
-    title: text({
+    title: text({ 
       validation: { isRequired: true },
-      label: 'Episode Title',
-    }),
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
+     }),
     description: text({
-      ui: { displayMode: 'textarea' },
-      label: 'Episode Description',
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
     }),
     audioUrl: text({
-      validation: { isRequired: true },
-      label: 'Audio URL',
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
     }),
     releaseDate: timestamp({
-      validation: { isRequired: true },
-      label: 'Release Date',
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
     }),
     duration: integer({
-      validation: { isRequired: true },
-      label: 'Duration (seconds)',
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
     }),
     podcast: relationship({
       ref: 'Podcast.episodes',
@@ -47,37 +66,51 @@ export const Episode = list({
         // Display podcast title in the relationship field
         displayMode: 'select',
         labelField: 'title',
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
       },
     }),
     seasonNumber: integer({
       label: 'Season Number',
       validation: { isRequired: false },
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
     }),
     episodeNumber: integer({
       label: 'Episode Number',
       validation: { isRequired: false },
-    }),
-    explicit: select({
-      options: [
-        { label: 'Yes', value: 'yes' },
-        { label: 'No', value: 'no' },
-        { label: 'Clean', value: 'clean' },
-      ],
-      label: 'Explicit Content',
       ui: {
-        displayMode: 'segmented-control',
         createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
       },
-      defaultValue: 'no',
     }),
     createdAt: timestamp({
       defaultValue: { kind: 'now' },
       label: 'Created At',
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
     }),
     updatedAt: timestamp({
       defaultValue: { kind: 'now' },
       isIndexed: true,
       label: 'Updated At',
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
     }),
+  },
+  ui: {
+    hideCreate: true, // Hides the "Add" button from the list view
+    createView: { fieldMode: 'hidden' }, // Prevents access to the create form
   },
 });

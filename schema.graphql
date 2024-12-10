@@ -235,7 +235,6 @@ type Episode {
   podcast: Podcast
   seasonNumber: Int
   episodeNumber: Int
-  explicit: String
   createdAt: DateTime
   updatedAt: DateTime
 }
@@ -252,25 +251,13 @@ input EpisodeWhereInput {
   title: StringFilter
   description: StringFilter
   audioUrl: StringFilter
-  releaseDate: DateTimeFilter
-  duration: IntFilter
+  releaseDate: DateTimeNullableFilter
+  duration: IntNullableFilter
   podcast: PodcastWhereInput
   seasonNumber: IntNullableFilter
   episodeNumber: IntNullableFilter
-  explicit: StringNullableFilter
   createdAt: DateTimeNullableFilter
   updatedAt: DateTimeNullableFilter
-}
-
-input DateTimeFilter {
-  equals: DateTime
-  in: [DateTime!]
-  notIn: [DateTime!]
-  lt: DateTime
-  lte: DateTime
-  gt: DateTime
-  gte: DateTime
-  not: DateTimeFilter
 }
 
 input IntNullableFilter {
@@ -284,20 +271,6 @@ input IntNullableFilter {
   not: IntNullableFilter
 }
 
-input StringNullableFilter {
-  equals: String
-  in: [String!]
-  notIn: [String!]
-  lt: String
-  lte: String
-  gt: String
-  gte: String
-  contains: String
-  startsWith: String
-  endsWith: String
-  not: StringNullableFilter
-}
-
 input EpisodeOrderByInput {
   id: OrderDirection
   title: OrderDirection
@@ -307,7 +280,6 @@ input EpisodeOrderByInput {
   duration: OrderDirection
   seasonNumber: OrderDirection
   episodeNumber: OrderDirection
-  explicit: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
@@ -321,7 +293,6 @@ input EpisodeUpdateInput {
   podcast: PodcastRelateToOneForUpdateInput
   seasonNumber: Int
   episodeNumber: Int
-  explicit: String
   createdAt: DateTime
   updatedAt: DateTime
 }
@@ -346,7 +317,6 @@ input EpisodeCreateInput {
   podcast: PodcastRelateToOneForCreateInput
   seasonNumber: Int
   episodeNumber: Int
-  explicit: String
   createdAt: DateTime
   updatedAt: DateTime
 }

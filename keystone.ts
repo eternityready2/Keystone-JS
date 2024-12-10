@@ -14,6 +14,11 @@ import { lists } from './schema'
 // when you write your list-level access control functions, as they typically rely on session data
 import { withAuth, session } from './auth'
 
+import express from 'express';
+
+import syncEpisodes from './sync'; // Adjust the path to your sync file
+
+
 export default withAuth(
   config({
     db: {
@@ -25,5 +30,28 @@ export default withAuth(
     },
     lists,
     session,
-  })
+    server: {
+      extendExpressApp: (app, context) => {
+        // Add JSON body parser middleware
+        app.use(express.json());
+  
+        // Define the /api/sync route
+        app.post('/api/sync', async (req, res) => {
+          const { podcastId } = req.body; // Now req.body should be parsed properly
+  
+          if (!podcastId) {
+            return res.status(400).json({ error: 'Podcast ID is required.' });
+          }
+  
+          try {
+            await syncEpisodes(podcastId, context); // Call your sync logic
+            res.status(200).json({ message: 'Sync completed successfully.' });
+          } catch (error) {
+            console.error('Error syncing episodes:', error);
+            res.status(500).json({ error: 'Failed to sync episodes.' });
+          }
+        });
+      },
+    },
+  }),
 )
