@@ -102,7 +102,7 @@ export const Field = ({ value, field, item }: { value: { value: any[] }; field: 
             zIndex: 1000,
           }}
         >
-          Sync is running...
+          Sync is running, you can leave this page it will continue in background
         </div>
       )}
     </div>

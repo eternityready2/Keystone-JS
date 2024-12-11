@@ -3,7 +3,7 @@ import { list } from '@keystone-6/core';
 import { text, relationship, timestamp, integer, json } from '@keystone-6/core/fields';
 import { allowAll } from '@keystone-6/core/access';
 import { graphql } from '@keystone-6/core';
-import syncEpisodes from '../sync'; // Import your sync file
+import syncEpisodes from '../api/sync'; // Import your sync file
 
 export const Podcast = list({
   access: allowAll,
