@@ -43,6 +43,9 @@ export const Podcast = list({
       },
     }),
     description: text({
+      db: {
+        nativeType: 'LongText',
+      },
       ui: {
         displayMode: 'textarea',
         createView: { fieldMode: 'hidden' },

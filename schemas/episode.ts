@@ -30,7 +30,10 @@ export const Episode = list({
         listView: { fieldMode: 'read' },
       },
      }),
-    description: text({
+     description: text({
+      db: {
+        nativeType: 'LongText', // Use for medium-sized descriptions
+      },
       ui: {
         createView: { fieldMode: 'hidden' },
         itemView: { fieldMode: 'read' },

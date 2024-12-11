@@ -27,7 +27,7 @@ model Podcast {
   syncFrequency Int       @default(7)
   lastSyncedAt  DateTime?
   title         String    @default("")
-  description   String    @default("")
+  description   String    @default("") @mysql.LongText
   imageUrl      String    @default("")
   episodes      Episode[] @relation("Episode_podcast")
   createdAt     DateTime? @default(now())
@@ -39,7 +39,7 @@ model Podcast {
 model Episode {
   id            String    @id @default(cuid())
   title         String    @default("")
-  description   String    @default("")
+  description   String    @default("") @mysql.LongText
   audioUrl      String    @default("")
   releaseDate   DateTime?
   duration      Int?
