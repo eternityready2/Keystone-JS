@@ -31,7 +31,7 @@ export const Podcast = list({
         createView: { fieldMode: 'hidden' },
         itemView: { fieldMode: 'read' },
         listView: { fieldMode: 'read' },
-        views: './admin/components/lastSyncedAtView', // Path to your custom component
+        views: './admin/components/LastSyncedAtView', // Path to your custom component
       },
     }),
     title: text({
