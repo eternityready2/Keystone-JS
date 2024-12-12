@@ -116,7 +116,8 @@ type Podcast {
   rssFeedUrl: String
   category: String
   keywords: String
-  syncFrequency: Int
+  syncFrequency: String
+  customSyncDays: Int
   lastSyncedAt: DateTime
   title: String
   description: String
@@ -139,7 +140,8 @@ input PodcastWhereInput {
   rssFeedUrl: StringFilter
   category: StringFilter
   keywords: StringFilter
-  syncFrequency: IntFilter
+  syncFrequency: StringFilter
+  customSyncDays: IntNullableFilter
   lastSyncedAt: DateTimeNullableFilter
   title: StringFilter
   description: StringFilter
@@ -149,7 +151,7 @@ input PodcastWhereInput {
   updatedAt: DateTimeNullableFilter
 }
 
-input IntFilter {
+input IntNullableFilter {
   equals: Int
   in: [Int!]
   notIn: [Int!]
@@ -157,7 +159,7 @@ input IntFilter {
   lte: Int
   gt: Int
   gte: Int
-  not: IntFilter
+  not: IntNullableFilter
 }
 
 input EpisodeManyRelationFilter {
@@ -172,6 +174,7 @@ input PodcastOrderByInput {
   category: OrderDirection
   keywords: OrderDirection
   syncFrequency: OrderDirection
+  customSyncDays: OrderDirection
   lastSyncedAt: OrderDirection
   title: OrderDirection
   description: OrderDirection
@@ -184,7 +187,8 @@ input PodcastUpdateInput {
   rssFeedUrl: String
   category: String
   keywords: String
-  syncFrequency: Int
+  syncFrequency: String
+  customSyncDays: Int
   lastSyncedAt: DateTime
   title: String
   description: String
@@ -210,7 +214,8 @@ input PodcastCreateInput {
   rssFeedUrl: String
   category: String
   keywords: String
-  syncFrequency: Int
+  syncFrequency: String
+  customSyncDays: Int
   lastSyncedAt: DateTime
   title: String
   description: String
@@ -258,17 +263,6 @@ input EpisodeWhereInput {
   episodeNumber: IntNullableFilter
   createdAt: DateTimeNullableFilter
   updatedAt: DateTimeNullableFilter
-}
-
-input IntNullableFilter {
-  equals: Int
-  in: [Int!]
-  notIn: [Int!]
-  lt: Int
-  lte: Int
-  gt: Int
-  gte: Int
-  not: IntNullableFilter
 }
 
 input EpisodeOrderByInput {

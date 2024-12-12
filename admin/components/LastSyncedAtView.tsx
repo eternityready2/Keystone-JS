@@ -1,6 +1,9 @@
 import React, { useState, useEffect  } from 'react';
+import { TextInput, FieldContainer, FieldLabel } from '@keystone-ui/fields';
+import { Button } from '@keystone-ui/button';
+import { FieldProps } from '@keystone-6/core/types';
 
-export const Field = ({ value, field, item }: { value: { value: any[] }; field: any; item: any }) => {
+export const Field = ({ field, value, onChange, autoFocus }: FieldProps<typeof controller>) => {
   const [itemId, setItemId] = useState<string | null>(null); 
   const [isSyncing, setIsSyncing] = useState(false); // Sync state
   const [lastSyncedAt, setLastSyncedAt] = useState(value?.value?.dateValue ? new Date(`${value.value.dateValue}T${value.value.timeValue?.value}Z`) : null);
@@ -60,50 +63,24 @@ export const Field = ({ value, field, item }: { value: { value: any[] }; field: 
     }
   };
   
+  const CustomButton = ({ isLoading, onClick }) => {
+    return (
+      <Button
+        size="medium"
+        tone="active"
+        isLoading={isLoading}
+        onClick={onClick}
+      >
+        {isLoading ? 'Loading...' : 'Sync Now'}
+      </Button>
+    );
+  };
 
   return (
-    <div>
-      <div className="css-11ditgu">{field.label || 'Last Synced At'}</div>
-      <div className="css-t3ussg">{formattedDateTime}</div>
-      <button
-      onClick={syncNow}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        cursor: 'pointer',
-        padding: '0 16px',
-        backgroundColor: isHovered ? '#1d4ed8' : '#2563eb', 
-        color: '#fff',
-        border: 'none',
-        borderRadius: '5px',
-        fontSize: '16px',
-        marginTop: '5px',
-        lineHeight: '1.15',
-        fontWeight: '500',
-        height: '38px',
-      }}
-    >
-      Sync now
-    </button>
-
-      {/* Popup for syncing status */}
-      {isSyncing && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            padding: '20px',
-            background: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            borderRadius: '10px',
-            zIndex: 1000,
-          }}
-        >
-          Sync is running, you can leave this page it will continue in background
-        </div>
-      )}
-    </div>
+    <FieldContainer>
+      <FieldLabel>{field.label || 'Last Synced At'}</FieldLabel>
+      <p>{formattedDateTime}</p>
+      <CustomButton isLoading={isSyncing} onClick={syncNow} />
+    </FieldContainer>
   );
 };

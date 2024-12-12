@@ -20,18 +20,19 @@ model User {
 }
 
 model Podcast {
-  id            String    @id @default(cuid())
-  rssFeedUrl    String    @default("")
-  category      String    @default("")
-  keywords      String    @default("")
-  syncFrequency Int       @default(7)
-  lastSyncedAt  DateTime?
-  title         String    @default("")
-  description   String    @default("") @mysql.LongText
-  imageUrl      String    @default("")
-  episodes      Episode[] @relation("Episode_podcast")
-  createdAt     DateTime? @default(now())
-  updatedAt     DateTime? @default(now())
+  id             String    @id @default(cuid())
+  rssFeedUrl     String    @default("")
+  category       String    @default("")
+  keywords       String    @default("")
+  syncFrequency  String    @default("weekly")
+  customSyncDays Int?
+  lastSyncedAt   DateTime?
+  title          String    @default("")
+  description    String    @default("") @mysql.LongText
+  imageUrl       String    @default("")
+  episodes       Episode[] @relation("Episode_podcast")
+  createdAt      DateTime? @default(now())
+  updatedAt      DateTime? @default(now())
 
   @@index([updatedAt])
 }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FieldLabel } from '@keystone-ui/fields';
 
 export const Field = ({ value, field }: { value: { value: any[] }; field: any }) => {
 
@@ -19,7 +20,7 @@ export const Field = ({ value, field }: { value: { value: any[] }; field: any })
 
   return (
     <div>
-      <div className="css-11ditgu">{field.label || 'Episodes'}</div>
+      <FieldLabel htmlFor={field.path}>{field.label || 'Episodes'}</FieldLabel>
       <p>This feed has {episodesCnt} episodes</p>
       <div style={{ marginBottom: '1rem' }}>
         <a 
