@@ -67,6 +67,7 @@ export const Podcast = list({
       defaultValue: undefined,
       db: {
         nativeType: 'LongText',
+        default: undefined,
       },
       ui: {
         displayMode: 'textarea',
