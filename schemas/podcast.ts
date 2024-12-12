@@ -34,7 +34,7 @@ export const Podcast = list({
       label: 'Sync Frequency',
       ui: {
         // Path should be relative to the project root
-        views: './admin/components/syncFrequencyView',
+        views: './admin/components/SyncFrequencyView',
       },
       
     }),
