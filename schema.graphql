@@ -232,14 +232,15 @@ input EpisodeRelateToManyForCreateInput {
 
 type Episode {
   id: ID!
+  season: Int
+  episode: Int
   title: String
   description: String
+  imageUrl: String
   audioUrl: String
   releaseDate: DateTime
   duration: Int
   podcast: Podcast
-  seasonNumber: Int
-  episodeNumber: Int
   createdAt: DateTime
   updatedAt: DateTime
 }
@@ -253,40 +254,54 @@ input EpisodeWhereInput {
   OR: [EpisodeWhereInput!]
   NOT: [EpisodeWhereInput!]
   id: IDFilter
+  season: IntFilter
+  episode: IntFilter
   title: StringFilter
   description: StringFilter
+  imageUrl: StringFilter
   audioUrl: StringFilter
   releaseDate: DateTimeNullableFilter
   duration: IntNullableFilter
   podcast: PodcastWhereInput
-  seasonNumber: IntNullableFilter
-  episodeNumber: IntNullableFilter
   createdAt: DateTimeNullableFilter
   updatedAt: DateTimeNullableFilter
 }
 
+input IntFilter {
+  equals: Int
+  in: [Int!]
+  notIn: [Int!]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  not: IntFilter
+}
+
 input EpisodeOrderByInput {
   id: OrderDirection
+  season: OrderDirection
+  episode: OrderDirection
   title: OrderDirection
   description: OrderDirection
+  imageUrl: OrderDirection
   audioUrl: OrderDirection
   releaseDate: OrderDirection
   duration: OrderDirection
-  seasonNumber: OrderDirection
-  episodeNumber: OrderDirection
   createdAt: OrderDirection
   updatedAt: OrderDirection
 }
 
 input EpisodeUpdateInput {
+  season: Int
+  episode: Int
   title: String
   description: String
+  imageUrl: String
   audioUrl: String
   releaseDate: DateTime
   duration: Int
   podcast: PodcastRelateToOneForUpdateInput
-  seasonNumber: Int
-  episodeNumber: Int
   createdAt: DateTime
   updatedAt: DateTime
 }
@@ -303,14 +318,15 @@ input EpisodeUpdateArgs {
 }
 
 input EpisodeCreateInput {
+  season: Int
+  episode: Int
   title: String
   description: String
+  imageUrl: String
   audioUrl: String
   releaseDate: DateTime
   duration: Int
   podcast: PodcastRelateToOneForCreateInput
-  seasonNumber: Int
-  episodeNumber: Int
   createdAt: DateTime
   updatedAt: DateTime
 }

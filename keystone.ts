@@ -8,7 +8,10 @@ import syncEpisodes from './api/sync'; // Adjust the path to your sync file
 import cors from 'cors'; // Import CORS middleware
 // import rateLimit from 'express-rate-limit'; // Import rate limiter
 import { podcastsHandler } from './api/podcasts'; // Import the existing podcasts handler
+import { episodesHandler } from './api/episodes'; // Import the existing episodes handler
 import { categoriesHandler } from './api/categories'; // Import the new categories handler
+import { seasonsHandler } from './api/seasons'; // Import the new seasons handler
+import { podcastInfoHandler } from './api/podcastInfo';
 import { config as dotenvConfig } from 'dotenv';
 dotenvConfig();
 // Ensure that required environment variables are set
@@ -101,9 +104,22 @@ export default withAuth(
           await podcastsHandler(req, res, context);
         });
 
+        // Define the /api/episodes route and delegate to episodesHandler
+        app.get('/api/episodes', async (req: Request, res: Response) => {
+          await episodesHandler(req, res, context);
+        });
+
         // Define the /api/categories route and delegate to categoriesHandler
         app.get('/api/categories', async (req: Request, res: Response) => {
           await categoriesHandler(req, res, context);
+        });
+        // Define the /api/seasons route and delegate to seasonsHandler
+        app.get('/api/seasons', async (req: Request, res: Response) => {
+          await seasonsHandler(req, res, context);
+        });
+        // Register /api/podcast-info endpoint
+        app.get('/api/podcast-info', async (req, res) => {
+          await podcastInfoHandler(req, res, context);
         });
       },
     },

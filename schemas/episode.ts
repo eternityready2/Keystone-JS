@@ -22,6 +22,24 @@ export const Episode = list({
     },
   },
   fields: {
+    season: integer({ 
+      validation: { isRequired: true },
+      db: { isIndexed: true },
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
+     }),
+     episode: integer({ 
+      validation: { isRequired: true },
+      db: { isIndexed: true },
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
+     }),
     title: text({ 
       validation: { isRequired: true },
       ui: {
@@ -36,6 +54,15 @@ export const Episode = list({
         nativeType: 'LongText', // Use for medium-sized descriptions
         default: undefined,
       },
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
+    }),
+    imageUrl: text({
+      label: 'Podcast Image URL',
+      validation: { isRequired: false },
       ui: {
         createView: { fieldMode: 'hidden' },
         itemView: { fieldMode: 'read' },
@@ -71,24 +98,6 @@ export const Episode = list({
         // Display podcast title in the relationship field
         displayMode: 'select',
         labelField: 'title',
-        createView: { fieldMode: 'hidden' },
-        itemView: { fieldMode: 'read' },
-        listView: { fieldMode: 'read' },
-      },
-    }),
-    seasonNumber: integer({
-      label: 'Season Number',
-      validation: { isRequired: false },
-      ui: {
-        createView: { fieldMode: 'hidden' },
-        itemView: { fieldMode: 'read' },
-        listView: { fieldMode: 'read' },
-      },
-    }),
-    episodeNumber: integer({
-      label: 'Episode Number',
-      validation: { isRequired: false },
-      ui: {
         createView: { fieldMode: 'hidden' },
         itemView: { fieldMode: 'read' },
         listView: { fieldMode: 'read' },

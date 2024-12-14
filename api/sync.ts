@@ -56,8 +56,11 @@ const syncEpisodes = async (podcastId: string, context: any) => {
 
     const episodesFromRss = Array.isArray(podcastChannel.item) ? podcastChannel.item : [podcastChannel.item];
     const parsedEpisodes = episodesFromRss.map((episode) => ({
+      season: parseInt(episode['itunes:season'], 10) || 0,
+      episode: parseInt(episode['itunes:episode'], 10) || 0,
       title: episode.title,
-      description: episode.description,
+      description: episode['content:encoded'] || episode.description,
+      imageUrl: episode['itunes:image']?.['$']?.href || podcast.imageUrl,
       audioUrl: episode.enclosure?.['$']?.url,
       releaseDate: new Date(episode.pubDate).toISOString(),
       duration: parseDurationToSeconds(episode['itunes:duration']),

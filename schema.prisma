@@ -38,18 +38,19 @@ model Podcast {
 }
 
 model Episode {
-  id            String    @id @default(cuid())
-  title         String    @default("")
-  description   String    @default("") @mysql.LongText
-  audioUrl      String    @default("")
-  releaseDate   DateTime?
-  duration      Int?
-  podcast       Podcast?  @relation("Episode_podcast", fields: [podcastId], references: [id])
-  podcastId     String?   @map("podcast")
-  seasonNumber  Int?
-  episodeNumber Int?
-  createdAt     DateTime? @default(now())
-  updatedAt     DateTime? @default(now())
+  id          String    @id @default(cuid())
+  season      Int
+  episode     Int
+  title       String    @default("")
+  description String    @default("") @mysql.LongText
+  imageUrl    String    @default("")
+  audioUrl    String    @default("")
+  releaseDate DateTime?
+  duration    Int?
+  podcast     Podcast?  @relation("Episode_podcast", fields: [podcastId], references: [id])
+  podcastId   String?   @map("podcast")
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @default(now())
 
   @@index([podcastId])
   @@index([updatedAt])
