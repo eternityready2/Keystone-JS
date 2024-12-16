@@ -66,6 +66,7 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
         { title: { contains: search } },
         { description: { contains: search } },
         { keywords: { contains: search } },
+        { category: { contains: search } },
       ];
 
       // Add category to OR if the search term matches any allowed category
@@ -82,7 +83,20 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
     // Fetch podcasts with applied filters and pagination
     const podcasts = await context.query.Podcast.findMany({
       where: filters,
-      query: 'id title description keywords category imageUrl rssFeedUrl syncFrequency lastSyncedAt', // Adjust fields as needed
+      query: `
+        id
+        title
+        description
+        keywords
+        category {
+          id
+          name
+        }
+        imageUrl
+        rssFeedUrl
+        syncTime
+        lastSyncedAt
+      `, // Adjust fields as needed
       take: limit,
       skip: skip,
       orderBy: { createdAt: 'desc' }, // Optional: order by creation date

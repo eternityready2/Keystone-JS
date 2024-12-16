@@ -12,9 +12,17 @@
     "@keystone-6/core": "^6.3.1",
     "@keystone-6/fields-document": "^9.0.0",
     "dotenv": "^16.4.7",
-    "node-fetch": "^3.3.2",
+    "fs-extra": "^11.2.0",
+    "node-cron": "^3.0.3",
+    "node-fetch": "^2.7.0",
+    "sharp": "^0.33.5",
     "typescript": "^5.5.0",
     "xml2js": "^0.6.2",
     "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node-fetch": "^2.6.12",
+    "concurrently": "^9.1.0"
   }
 }

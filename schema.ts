@@ -28,6 +28,7 @@ import { type Lists } from '.keystone/types'
 
 import { Podcast } from './schemas/podcast';
 import { Episode } from './schemas/episode';
+import { Category } from './schemas/category';
 
 
 export const lists = {
@@ -63,5 +64,6 @@ export const lists = {
   }),
   Podcast,
   Episode,
+  Category,
   
 } satisfies Lists

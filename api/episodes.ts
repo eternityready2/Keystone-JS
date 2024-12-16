@@ -11,9 +11,9 @@ const allowedCategories = ['technology', 'health', 'education', 'family']; // Ad
 const episodesQuerySchema = z.object({
   podcast: z.string(),
   season: z
-  .string()
-  .regex(/^\d+$/, { message: "Season must be a valid number." })
-  .transform((val) => parseInt(val, 10)),
+    .string()
+    .regex(/^\d+$/, { message: "Season must be a valid number." })
+    .transform((val) => parseInt(val, 10)),
   episode: z
     .string()
     .regex(/^\d+$/, { message: "Episode must be a valid number." })
@@ -86,7 +86,7 @@ export const episodesHandler = async (
   try {
     // Build filters based on query parameters
     const filters: any = {
-    podcast: { id: { equals: podcast } },
+      podcast: { id: { equals: podcast } },
       season: { equals: season },
     };
 
@@ -125,7 +125,10 @@ export const episodesHandler = async (
       `, // Removed 'podcast' from the query string
       take: limit,
       skip: skip,
-      orderBy: { episode: 'asc' }, // Order by episode number ascending
+      orderBy: [
+        { episode: 'asc' },          // First order by episode number ascending
+        { releaseDate: 'asc' },      // Then order by releaseDate ascending
+      ],
     });
 
     // Fetch total count for pagination

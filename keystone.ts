@@ -1,5 +1,5 @@
 // keystone.ts
-
+import React from 'react';
 import { config } from '@keystone-6/core';
 import { lists } from './schema';
 import { withAuth, session } from './auth';
@@ -13,7 +13,10 @@ import { categoriesHandler } from './api/categories'; // Import the new categori
 import { seasonsHandler } from './api/seasons'; // Import the new seasons handler
 import { podcastInfoHandler } from './api/podcastInfo';
 import { config as dotenvConfig } from 'dotenv';
+import path from 'path';
+import syncPodcasts from './scheduler';
 dotenvConfig();
+
 // Ensure that required environment variables are set
 const requiredEnvVars = ['DATABASE_URL', 'ALLOWED_ORIGINS'];
 requiredEnvVars.forEach((varName) => {
@@ -22,6 +25,7 @@ requiredEnvVars.forEach((varName) => {
     process.exit(1); // Exit the application if any required variable is missing
   }
 });
+
 // Define allowed origins
 // Parse ALLOWED_ORIGINS from environment variable
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -48,7 +52,11 @@ export default withAuth(
     session,
     server: {
       extendExpressApp: (app, context) => {
-        // Configure CORS middleware
+        // Configure CORS middleware for API routes
+        // Start the scheduler after Keystone is initialized
+        console.log('Starting scheduler...');
+        syncPodcasts(context); // Pass Keystone context to the scheduler
+        console.log('Scheduler started.');
         app.use(
           cors({
             origin: function (origin, callback) {
@@ -66,7 +74,7 @@ export default withAuth(
           })
         );
 
-        // Apply rate limiting to /api/podcasts and /api/categories
+        // Apply rate limiting to /api/podcasts and /api/categories if needed
         // app.use('/api/podcasts', apiLimiter);
         // app.use('/api/categories', apiLimiter); // Apply the same rate limiter
 
@@ -113,14 +121,36 @@ export default withAuth(
         app.get('/api/categories', async (req: Request, res: Response) => {
           await categoriesHandler(req, res, context);
         });
+
         // Define the /api/seasons route and delegate to seasonsHandler
         app.get('/api/seasons', async (req: Request, res: Response) => {
           await seasonsHandler(req, res, context);
         });
+
         // Register /api/podcast-info endpoint
         app.get('/api/podcast-info', async (req, res) => {
           await podcastInfoHandler(req, res, context);
         });
+
+        // Serve images with correct CORS settings
+        const imagesPath = path.resolve(process.cwd(), 'public', 'images');
+
+        app.use(
+          '/images',
+          cors({
+            origin: '*', // Allow all origins for images
+            methods: ['GET'], // Only GET requests are needed for static files
+            allowedHeaders: ['Content-Type'], // Allow necessary headers
+            credentials: false, // Disable credentials as they aren't needed for static assets
+          }),
+          express.static(imagesPath, {
+            dotfiles: 'deny', // Prevent serving dotfiles (e.g., .env, .gitignore)
+            etag: true,       // Enable ETag for caching
+            extensions: ['jpg', 'jpeg', 'png'], // Allow serving files without explicit extensions in the request
+            index: false,     // Disable directory listing
+            maxAge: '1d',     // Cache-Control max-age (1 day in this case)
+          })
+        );
       },
     },
   })

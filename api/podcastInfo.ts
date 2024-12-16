@@ -59,7 +59,15 @@ export const podcastInfoHandler = async (
     // Fetch podcast details
     const podcastData = await context.query.Podcast.findOne({
       where: { id: podcast },
-      query: 'id title description imageUrl category', // Adjust fields as needed
+      query: `
+      id 
+      title 
+      description 
+      imageUrl 
+      category {
+        id
+        name
+      }`, // Adjust fields as needed
     });
 
     if (!podcastData) {

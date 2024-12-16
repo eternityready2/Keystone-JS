@@ -4,8 +4,7 @@ import { text, relationship, timestamp, integer, select } from '@keystone-6/core
 import { allowAll } from '@keystone-6/core/access';
 import { graphql } from '@keystone-6/core';
 import syncEpisodes from '../api/sync';
-import { CustomSyncDaysView } from '../components/CustomSyncDaysView';
-
+import { SyncTimeField } from '../components/SyncTimeField';
 
 export const Podcast = list({
   access: allowAll,
@@ -20,30 +19,20 @@ export const Podcast = list({
       },
       label: 'RSS Feed URL',
     }),
-    category: text({ label: 'Category' }),
-    keywords: text({ label: 'Keywords (comma seperated)' }),
-    syncFrequency: select({
-      options: [
-        { label: 'Daily', value: 'daily' },
-        { label: 'Weekly', value: 'weekly' },
-        { label: 'Monthly', value: 'monthly' },
-        { label: 'Custom', value: 'custom' },
-      ],
-      defaultValue: 'weekly',
-      validation: { isRequired: true },
-      label: 'Sync Frequency',
+    category: relationship({
+      ref: 'Category',
       ui: {
-        // Path should be relative to the project root
-        views: './admin/components/SyncFrequencyView',
+        displayMode: 'select',
+        selection: {
+          fields: ['name'],
+        },
       },
-      
     }),
-    customSyncDays: integer({
-      label: 'Custom Sync Days',
-      validation: { min: 1 },
+    
+    keywords: text({ label: 'Keywords (comma seperated)' }),
+    syncTime: text({
       ui: {
-        // Path should be relative to the project root
-        views: './admin/components/CustomSyncDaysView',
+        views: './admin/components/SyncTimeField',
       },
     }),
     lastSyncedAt: timestamp({
