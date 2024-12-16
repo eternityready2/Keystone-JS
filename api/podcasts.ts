@@ -89,7 +89,7 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
       `, // Adjust fields as needed
       take: limit,
       skip: skip,
-      orderBy: { createdAt: 'desc' }, // Optional: order by creation date
+      orderBy: { title: 'desc' }, // Optional: order by creation date
     });
 
     // Fetch total count for pagination
