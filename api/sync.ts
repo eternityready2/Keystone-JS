@@ -1,9 +1,15 @@
+// Import necessary modules
 import fetch from 'node-fetch';
 import xml2js from 'xml2js';
 import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 
+/**
+ * Parses a duration string in the format "HH:MM:SS" or "MM:SS" into total seconds.
+ * @param duration - The duration string to parse.
+ * @returns The total duration in seconds, or null if parsing fails.
+ */
 const parseDurationToSeconds = (duration: string): number | null => {
   if (!duration) return null;
 
@@ -18,6 +24,14 @@ const parseDurationToSeconds = (duration: string): number | null => {
   return null;
 };
 
+/**
+ * Downloads an image from a given URL, optimizes it, resizes it, and saves it to the specified path in WebP format.
+ * @param imageUrl - The URL of the image to download.
+ * @param savePath - The directory path where the image will be saved.
+ * @param resizeOptions - The desired width and height for resizing.
+ * @param podcastId - The ID of the podcast, used for organizing images.
+ * @returns The relative path to the saved image, or null if an error occurs.
+ */
 const downloadAndSaveImage = async (
   imageUrl: string,
   savePath: string,
@@ -29,34 +43,47 @@ const downloadAndSaveImage = async (
     if (!response.ok) throw new Error(`Failed to download image: ${response.statusText}`);
 
     const buffer = await response.buffer();
-    const fileName = path.basename(new URL(imageUrl).pathname);
-    const filePath = path.join(savePath, fileName);
+    const urlPath = new URL(imageUrl).pathname;
+    const originalFileName = path.basename(urlPath);
+    const fileExtension = path.extname(originalFileName).toLowerCase();
+    const fileNameWithoutExt = path.basename(originalFileName, fileExtension);
+    const optimizedFileName = `${fileNameWithoutExt}.webp`; // Convert all images to WebP for consistency
+    const filePath = path.join(savePath, optimizedFileName);
 
-    // Ensure directory exists
+    // Ensure the save directory exists
     fs.mkdirSync(savePath, { recursive: true });
 
-    // Resize and save the image
-    await sharp(buffer)
+    // Initialize sharp with the buffer
+    const image = sharp(buffer)
       .resize(resizeOptions.width, resizeOptions.height, { fit: 'cover' })
-      .toFile(filePath);
+      .toFormat('webp', { quality: 80 }) // Convert to WebP with quality 80
+      .withMetadata(false); // Strip metadata to reduce size
+
+    // Save the optimized image
+    await image.toFile(filePath);
 
     console.log(`Image saved to ${filePath}`);
 
     // Return the relative path to be stored in the database
-    return `/images/${podcastId}/${fileName}`;
+    return `/images/${podcastId}/${optimizedFileName}`;
   } catch (error) {
-    console.error(`Error downloading or resizing image: ${error.message}`);
+    console.error(`Error downloading or resizing image: ${(error as Error).message}`);
     return null;
   }
 };
 
+/**
+ * Deletes images in the specified directory that are not present in the savedImagePaths set.
+ * @param savedImagePaths - A set of relative image paths that should be retained.
+ * @param imageDirectory - The directory where images are stored.
+ */
 const deleteUnusedImages = (savedImagePaths: Set<string>, imageDirectory: string) => {
   try {
     const files = fs.readdirSync(imageDirectory);
 
     for (const file of files) {
       const filePath = path.join(imageDirectory, file);
-      const relativePath = `/${path.relative('./public', filePath).replace(/\\/g, '/')}`;
+      const relativePath = `/images/${path.basename(imageDirectory)}/${file}`;
 
       if (fs.statSync(filePath).isFile() && !savedImagePaths.has(relativePath)) {
         fs.unlinkSync(filePath);
@@ -64,14 +91,18 @@ const deleteUnusedImages = (savedImagePaths: Set<string>, imageDirectory: string
       }
     }
   } catch (error) {
-    console.error(`Error cleaning up images: ${error.message}`);
+    console.error(`Error cleaning up images: ${(error as Error).message}`);
   }
 };
 
-
-
+/**
+ * Synchronizes podcast episodes by fetching the RSS feed, updating the database, and managing images.
+ * @param podcastId - The ID of the podcast to synchronize.
+ * @param context - The context object, typically provided by the framework (e.g., KeystoneJS).
+ */
 const syncEpisodes = async (podcastId: string, context: any) => {
   try {
+    // Fetch the podcast details from the database
     const podcast = await context.query.Podcast.findOne({
       where: { id: podcastId },
       query: 'rssFeedUrl title description imageUrl',
@@ -84,6 +115,7 @@ const syncEpisodes = async (podcastId: string, context: any) => {
     const { rssFeedUrl } = podcast;
     console.log(`Starting synchronization for Podcast ID: ${podcastId} from ${rssFeedUrl}`);
 
+    // Fetch the RSS feed
     const response = await fetch(rssFeedUrl);
     if (!response.ok) throw new Error(`Failed to fetch RSS feed: ${response.statusText}`);
 
@@ -93,19 +125,24 @@ const syncEpisodes = async (podcastId: string, context: any) => {
 
     if (!podcastChannel) throw new Error('Invalid RSS feed format.');
 
-    const baseImageDirectory = './public/images';
+    const baseImageDirectory = path.resolve('./public/images');
     const podcastImageDirectory = path.join(baseImageDirectory, podcastId);
     const savedImagePaths = new Set<string>();
 
-    // Save and resize podcast image
+    // Prepare podcast details
     const podcastDetails = {
       title: podcastChannel.title || podcast.title,
       description: podcastChannel.description || podcast.description,
-      imageUrl: podcastChannel?.image?.url || podcastChannel['itunes:image']?.['$']?.href || podcast.imageUrl || '/images/no-thumbnail.jpg',
+      imageUrl:
+        podcastChannel?.image?.url ||
+        podcastChannel['itunes:image']?.['$']?.href ||
+        podcast.imageUrl ||
+        '/images/no-thumbnail.jpg',
       lastSyncedAt: new Date().toISOString(),
     };
 
-    if (podcastDetails.imageUrl) {
+    // Download and optimize the podcast image
+    if (podcastDetails.imageUrl && podcastDetails.imageUrl !== '/images/no-thumbnail.jpg') {
       const savedPodcastImagePath = await downloadAndSaveImage(
         podcastDetails.imageUrl,
         podcastImageDirectory,
@@ -118,9 +155,10 @@ const syncEpisodes = async (podcastId: string, context: any) => {
       }
     }
 
+    // Parse episodes from RSS feed
     const episodesFromRss = Array.isArray(podcastChannel.item) ? podcastChannel.item : [podcastChannel.item];
     const parsedEpisodes = await Promise.all(
-      episodesFromRss.map(async (episode) => {
+      episodesFromRss.map(async (episode: any) => {
         let episodeImagePath: string | null = null;
 
         const episodeImageUrl = episode['itunes:image']?.['$']?.href;
@@ -136,7 +174,7 @@ const syncEpisodes = async (podcastId: string, context: any) => {
           }
         }
 
-        // Extract season and episode numbers, with default values if not available
+        // Extract season and episode numbers, defaulting to 0 if not available
         const season = parseInt(episode['itunes:season']) || 0;
         const episodeNumber = parseInt(episode['itunes:episode']) || 0;
 
@@ -147,14 +185,15 @@ const syncEpisodes = async (podcastId: string, context: any) => {
           releaseDate: new Date(episode.pubDate).toISOString(),
           duration: parseDurationToSeconds(episode['itunes:duration']),
           imageUrl: episodeImagePath || podcastDetails.imageUrl,
-          season, // Add season
-          episode: episodeNumber, // Add episode number
+          season, // Season number
+          episode: episodeNumber, // Episode number
         };
       })
     );
 
+    // Update or create episodes in the database
     for (const episode of parsedEpisodes) {
-      const existingEpisode = await context.query.Episode.findMany({
+      const existingEpisodes = await context.query.Episode.findMany({
         where: {
           podcast: { id: { equals: podcastId } },
           title: { equals: episode.title },
@@ -162,18 +201,23 @@ const syncEpisodes = async (podcastId: string, context: any) => {
         query: 'id',
       });
 
-      if (existingEpisode.length > 0) {
+      if (existingEpisodes.length > 0) {
+        // Update existing episode
         await context.query.Episode.updateOne({
-          where: { id: existingEpisode[0].id },
+          where: { id: existingEpisodes[0].id },
           data: { ...episode },
         });
+        console.log(`Updated episode: ${episode.title}`);
       } else {
+        // Create new episode
         await context.query.Episode.createOne({
           data: { ...episode, podcast: { connect: { id: podcastId } } },
         });
+        console.log(`Created new episode: ${episode.title}`);
       }
     }
 
+    // Save updated podcast details to the database
     await savePodcastDetailsToDatabase(context, podcastId, podcastDetails, parsedEpisodes);
 
     // Cleanup unused images in the podcast directory
@@ -181,10 +225,17 @@ const syncEpisodes = async (podcastId: string, context: any) => {
 
     console.log('Synchronization completed successfully.');
   } catch (error) {
-    console.error('Error syncing RSS feed:', error);
+    console.error('Error syncing RSS feed:', (error as Error).message);
   }
 };
 
+/**
+ * Updates the podcast details in the database.
+ * @param context - The context object, typically provided by the framework (e.g., KeystoneJS).
+ * @param podcastId - The ID of the podcast to update.
+ * @param podcastDetails - An object containing the updated podcast details.
+ * @param episodes - An array of parsed episodes.
+ */
 const savePodcastDetailsToDatabase = async (
   context: any,
   podcastId: string,
@@ -194,23 +245,29 @@ const savePodcastDetailsToDatabase = async (
     description: string;
     audioUrl: string;
     releaseDate: string;
-    duration?: string;
+    duration?: number | null;
     imageUrl?: string;
-    season?: number | null;
-    episode?: number | null;
+    season?: number;
+    episode?: number;
   }>
 ) => {
-  console.log(`Saving podcast details for Podcast ID: ${podcastId}`);
+  try {
+    console.log(`Saving podcast details for Podcast ID: ${podcastId}`);
 
-  await context.query.Podcast.updateOne({
-    where: { id: podcastId },
-    data: {
-      title: podcastDetails.title,
-      description: podcastDetails.description,
-      imageUrl: podcastDetails.imageUrl,
-      lastSyncedAt: podcastDetails.lastSyncedAt,
-    },
-  });
+    await context.query.Podcast.updateOne({
+      where: { id: podcastId },
+      data: {
+        title: podcastDetails.title,
+        description: podcastDetails.description,
+        imageUrl: podcastDetails.imageUrl,
+        lastSyncedAt: podcastDetails.lastSyncedAt,
+      },
+    });
+
+    console.log('Podcast details updated successfully.');
+  } catch (error) {
+    console.error(`Error saving podcast details: ${(error as Error).message}`);
+  }
 };
 
 export default syncEpisodes;

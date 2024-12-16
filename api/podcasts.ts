@@ -4,9 +4,6 @@ import { Request, Response } from 'express';
 import { KeystoneContext } from '@keystone-6/core/types';
 import { z } from 'zod';
 
-// Define allowed categories based on your schema
-const allowedCategories = ['technology', 'health', 'education', 'family']; // Added 'family'
-
 // Define a schema for query parameters using Zod for validation
 const querySchema = z.object({
   category: z.string().optional(),
@@ -55,24 +52,17 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
     const filters: any = {};
 
     if (category) {
-      filters.category = { equals: category };
+      filters.category = { name: { equals: category } };
     }
 
     if (search) {
-      const searchLower = search.toLowerCase();
-
       // Use 'contains' for substring matches
       filters.OR = [
         { title: { contains: search } },
         { description: { contains: search } },
         { keywords: { contains: search } },
-        { category: { contains: search } },
+        { category: { name: { contains: search } } }, // Corrected
       ];
-
-      // Add category to OR if the search term matches any allowed category
-      if (allowedCategories.includes(searchLower)) {
-        filters.OR.push({ category: { equals: searchLower } });
-      }
     }
 
     console.log('Applied Filters:', filters);
