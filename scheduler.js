@@ -3,7 +3,7 @@ import syncEpisodes from './api/sync'; // Assume you already have a syncEpisodes
 
 async function syncPodcasts(context) {
   // Schedule the task to run every minute for testing
-  cron.schedule('* * * * *', async () => {
+  cron.schedule('0 * * * *', async () => {
     console.log(`Scheduler running at ${new Date().toISOString()}`);
 
     try {
