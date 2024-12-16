@@ -125,9 +125,8 @@ export const episodesHandler = async (
       `, // Removed 'podcast' from the query string
       take: limit,
       skip: skip,
-      orderBy: [
-        { episode: 'asc' },          // First order by episode number ascending
-        { releaseDate: 'asc' },      // Then order by releaseDate ascending
+      orderBy: [         // First order by episode number ascending
+        { releaseDate: 'desc' },      // Then order by releaseDate ascending
       ],
     });
 
