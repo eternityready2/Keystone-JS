@@ -49,10 +49,8 @@ export const Episode = list({
       },
      }),
      description: text({
-      defaultValue: undefined,
       db: {
         nativeType: 'LongText', // Use for medium-sized descriptions
-        default: undefined,
       },
       ui: {
         createView: { fieldMode: 'hidden' },
