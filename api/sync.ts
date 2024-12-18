@@ -1,9 +1,10 @@
 // Import necessary modules
 import fetch from 'node-fetch';
 import xml2js from 'xml2js';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
+import pLimit from 'p-limit';
 
 /**
  * Parses a duration string in the format "HH:MM:SS" or "MM:SS" into total seconds.
@@ -24,6 +25,10 @@ const parseDurationToSeconds = (duration: string): number | null => {
   return null;
 };
 
+// Set concurrency limit for image processing
+const CONCURRENCY_LIMIT = 1;
+const limit = pLimit(CONCURRENCY_LIMIT);
+
 /**
  * Downloads an image from a given URL, optimizes it, resizes it, and saves it to the specified path in WebP format.
  * @param imageUrl - The URL of the image to download.
@@ -38,38 +43,40 @@ const downloadAndSaveImage = async (
   resizeOptions: { width: number; height: number },
   podcastId: string
 ): Promise<string | null> => {
-  try {
-    const response = await fetch(imageUrl);
-    if (!response.ok) throw new Error(`Failed to download image: ${response.statusText}`);
+  return limit(async () => {
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error(`Failed to download image: ${response.statusText}`);
 
-    const buffer = await response.buffer();
-    const urlPath = new URL(imageUrl).pathname;
-    const originalFileName = path.basename(urlPath);
-    const fileExtension = path.extname(originalFileName).toLowerCase();
-    const fileNameWithoutExt = path.basename(originalFileName, fileExtension);
-    const optimizedFileName = `${fileNameWithoutExt}.webp`; // Convert all images to WebP for consistency
-    const filePath = path.join(savePath, optimizedFileName);
+      const buffer = await response.buffer();
+      const urlPath = new URL(imageUrl).pathname;
+      const originalFileName = path.basename(urlPath);
+      const fileExtension = path.extname(originalFileName).toLowerCase();
+      const fileNameWithoutExt = path.basename(originalFileName, fileExtension);
+      const optimizedFileName = `${fileNameWithoutExt}.webp`; // Convert all images to WebP for consistency
+      const filePath = path.join(savePath, optimizedFileName);
 
-    // Ensure the save directory exists
-    fs.mkdirSync(savePath, { recursive: true });
+      // Ensure the save directory exists
+      await fs.mkdir(savePath, { recursive: true });
 
-    // Initialize sharp with the buffer
-    const image = sharp(buffer)
-      .resize(resizeOptions.width, resizeOptions.height, { fit: 'cover' })
-      .toFormat('webp', { quality: 80 }) // Convert to WebP with quality 80
-      .withMetadata(false); // Strip metadata to reduce size
+      // Initialize sharp with the buffer
+      const image = sharp(buffer)
+        .resize(resizeOptions.width, resizeOptions.height, { fit: 'cover' })
+        .toFormat('webp', { quality: 80 }) // Convert to WebP with quality 80
+        .withMetadata(false); // Strip metadata to reduce size
 
-    // Save the optimized image
-    await image.toFile(filePath);
+      // Save the optimized image
+      await image.toFile(filePath);
 
-    console.log(`Image saved to ${filePath}`);
+      console.log(`Image saved to ${filePath}`);
 
-    // Return the relative path to be stored in the database
-    return `/images/${podcastId}/${optimizedFileName}`;
-  } catch (error) {
-    console.error(`Error downloading or resizing image: ${(error as Error).message}`);
-    return null;
-  }
+      // Return the relative path to be stored in the database
+      return `/images/${podcastId}/${optimizedFileName}`;
+    } catch (error) {
+      console.error(`Error downloading or resizing image (${imageUrl}): ${(error as Error).message}`);
+      return null;
+    }
+  });
 };
 
 /**
@@ -77,21 +84,28 @@ const downloadAndSaveImage = async (
  * @param savedImagePaths - A set of relative image paths that should be retained.
  * @param imageDirectory - The directory where images are stored.
  */
-const deleteUnusedImages = (savedImagePaths: Set<string>, imageDirectory: string) => {
+const deleteUnusedImages = async (savedImagePaths: Set<string>, imageDirectory: string) => {
   try {
-    const files = fs.readdirSync(imageDirectory);
+    const files = await fs.readdir(imageDirectory);
 
-    for (const file of files) {
+    const deletePromises = files.map(async (file) => {
       const filePath = path.join(imageDirectory, file);
       const relativePath = `/images/${path.basename(imageDirectory)}/${file}`;
 
-      if (fs.statSync(filePath).isFile() && !savedImagePaths.has(relativePath)) {
-        fs.unlinkSync(filePath);
-        console.log(`Removed unused image: ${filePath}`);
+      try {
+        const stats = await fs.stat(filePath);
+        if (stats.isFile() && !savedImagePaths.has(relativePath)) {
+          await fs.unlink(filePath);
+          console.log(`Removed unused image: ${filePath}`);
+        }
+      } catch (error) {
+        console.error(`Error processing file ${filePath}: ${(error as Error).message}`);
       }
-    }
+    });
+
+    await Promise.all(deletePromises);
   } catch (error) {
-    console.error(`Error cleaning up images: ${(error as Error).message}`);
+    console.error(`Error cleaning up images in ${imageDirectory}: ${(error as Error).message}`);
   }
 };
 
@@ -193,27 +207,31 @@ const syncEpisodes = async (podcastId: string, context: any) => {
 
     // Update or create episodes in the database
     for (const episode of parsedEpisodes) {
-      const existingEpisodes = await context.query.Episode.findMany({
-        where: {
-          podcast: { id: { equals: podcastId } },
-          title: { equals: episode.title },
-        },
-        query: 'id',
-      });
+      try {
+        const existingEpisodes = await context.query.Episode.findMany({
+          where: {
+            podcast: { id: { equals: podcastId } },
+            title: { equals: episode.title },
+          },
+          query: 'id',
+        });
 
-      if (existingEpisodes.length > 0) {
-        // Update existing episode
-        await context.query.Episode.updateOne({
-          where: { id: existingEpisodes[0].id },
-          data: { ...episode },
-        });
-        console.log(`Updated episode: ${episode.title}`);
-      } else {
-        // Create new episode
-        await context.query.Episode.createOne({
-          data: { ...episode, podcast: { connect: { id: podcastId } } },
-        });
-        console.log(`Created new episode: ${episode.title}`);
+        if (existingEpisodes.length > 0) {
+          // Update existing episode
+          await context.query.Episode.updateOne({
+            where: { id: existingEpisodes[0].id },
+            data: { ...episode },
+          });
+          console.log(`Updated episode: ${episode.title}`);
+        } else {
+          // Create new episode
+          await context.query.Episode.createOne({
+            data: { ...episode, podcast: { connect: { id: podcastId } } },
+          });
+          console.log(`Created new episode: ${episode.title}`);
+        }
+      } catch (error) {
+        console.error(`Error processing episode "${episode.title}": ${(error as Error).message}`);
       }
     }
 
@@ -221,7 +239,7 @@ const syncEpisodes = async (podcastId: string, context: any) => {
     await savePodcastDetailsToDatabase(context, podcastId, podcastDetails, parsedEpisodes);
 
     // Cleanup unused images in the podcast directory
-    deleteUnusedImages(savedImagePaths, podcastImageDirectory);
+    await deleteUnusedImages(savedImagePaths, podcastImageDirectory);
 
     console.log('Synchronization completed successfully.');
   } catch (error) {

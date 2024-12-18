@@ -20,19 +20,22 @@ export const categoriesHandler = async (
       return res.status(400).json({ error: 'Invalid query parameters.' });
     }
 
-    // Fetch categories directly from the Category list
-    const categoriesData = await context.query.Category.findMany({
-      query: `
-        id
-        name
-      `,
+    // Fetch the podcast categories directly from the database
+    const podcasts = await context.query.Podcast.findMany({
+      query: 'categories',
     });
 
-    // Normalize and prepare categories
-    const uniqueCategories = categoriesData
-      .map((category) => category.name?.trim().toLowerCase())
-      .filter((name): name is string => !!name) // Remove null or undefined names
-      .map((name) => name.charAt(0).toUpperCase() + name.slice(1)) // Capitalize
+    // Normalize and prepare unique categories from the CSV field
+    const uniqueCategories = Array.from(
+      new Set(
+        podcasts
+          .flatMap((podcast) =>
+            podcast.categories ? podcast.categories.split(',') : []
+          )
+          .map((category) => category.trim().toLowerCase())
+      )
+    )
+      .map((category) => category.charAt(0).toUpperCase() + category.slice(1)) // Capitalize
       .sort((a, b) => a.localeCompare(b)); // Sort alphabetically
 
     res.status(200).json({ categories: uniqueCategories });

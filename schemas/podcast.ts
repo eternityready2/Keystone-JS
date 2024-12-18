@@ -1,6 +1,6 @@
 // schemas/Podcast.ts
 import { list } from '@keystone-6/core';
-import { text, relationship, timestamp, integer, select } from '@keystone-6/core/fields';
+import { text, relationship, timestamp, integer, select, checkbox } from '@keystone-6/core/fields';
 import { allowAll } from '@keystone-6/core/access';
 import { graphql } from '@keystone-6/core';
 import syncEpisodes from '../api/sync';
@@ -18,17 +18,26 @@ export const Podcast = list({
         },
       },
       label: 'RSS Feed URL',
+      isIndexed: 'unique', // Enforce uniqueness
     }),
-    category: relationship({
-      ref: 'Category',
+    isFeatured: checkbox({
+      label: 'Featured Podcast',
+      defaultValue: false,
       ui: {
-        displayMode: 'select',
-        selection: {
-          fields: ['name'],
-        },
+        displayMode: 'checkbox',
+        label: 'Featured',
       },
     }),
-    
+    featuredAt: timestamp({ // New field
+      label: 'Featured At',
+      defaultValue: { kind: 'now' },
+      ui: {
+        createView: { fieldMode: 'hidden' },
+        itemView: { fieldMode: 'read' },
+        listView: { fieldMode: 'read' },
+      },
+    }),
+    categories: text({ label: 'Categories (comma seperated)' }),    
     keywords: text({ label: 'Keywords (comma seperated)' }),
     syncTime: text({
       ui: {

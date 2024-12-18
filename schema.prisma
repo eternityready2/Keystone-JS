@@ -21,9 +21,10 @@ model User {
 
 model Podcast {
   id           String    @id @default(cuid())
-  rssFeedUrl   String    @default("")
-  category     Category? @relation("Podcast_category", fields: [categoryId], references: [id])
-  categoryId   String?   @map("category")
+  rssFeedUrl   String    @unique @default("")
+  isFeatured   Boolean   @default(false)
+  featuredAt   DateTime? @default(now())
+  categories   String    @default("")
   keywords     String    @default("")
   syncTime     String    @default("")
   lastSyncedAt DateTime?
@@ -34,7 +35,6 @@ model Podcast {
   createdAt    DateTime? @default(now())
   updatedAt    DateTime? @default(now())
 
-  @@index([categoryId])
   @@index([updatedAt])
 }
 
@@ -55,10 +55,4 @@ model Episode {
 
   @@index([podcastId])
   @@index([updatedAt])
-}
-
-model Category {
-  id                    String    @id @default(cuid())
-  name                  String    @default("")
-  from_Podcast_category Podcast[] @relation("Podcast_category")
 }

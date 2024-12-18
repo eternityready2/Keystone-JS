@@ -10,6 +10,8 @@ import cors from 'cors'; // Import CORS middleware
 import { podcastsHandler } from './api/podcasts'; // Import the existing podcasts handler
 import { episodesHandler } from './api/episodes'; // Import the existing episodes handler
 import { categoriesHandler } from './api/categories'; // Import the new categories handler
+import { featuredPodcastsHandler } from './api/featured';
+import { latestPodcastsHandler } from './api/lastestPodcasts';
 import { seasonsHandler } from './api/seasons'; // Import the new seasons handler
 import { podcastInfoHandler } from './api/podcastInfo';
 import { config as dotenvConfig } from 'dotenv';
@@ -122,9 +124,17 @@ export default withAuth(
           await categoriesHandler(req, res, context);
         });
 
+        app.get('/api/featured', async (req: Request, res: Response) => {
+          await featuredPodcastsHandler(req, res, context);
+        });
+
+        app.get('/api/categories', async (req: Request, res: Response) => {
+          await categoriesHandler(req, res, context);
+        });
+
         // Define the /api/seasons route and delegate to seasonsHandler
-        app.get('/api/seasons', async (req: Request, res: Response) => {
-          await seasonsHandler(req, res, context);
+        app.get('/api/latestPodcasts', async (req: Request, res: Response) => {
+          await latestPodcastsHandler(req, res, context);
         });
 
         // Register /api/podcast-info endpoint

@@ -50,10 +50,28 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
   try {
     // Build filters based on query parameters
     const filters: any = {};
-
     if (category) {
-      filters.category = { name: { equals: category } };
+      filters.OR = [
+        { categories: { equals: category } }, // Exact match
+        { categories: { contains: `${category},` } }, // First position
+        { categories: { contains: `,${category},` } }, // Middle position
+        { categories: { contains: `,${category}` } }, // Last position
+      ];
     }
+    
+    if (search) {
+      filters.OR = [
+        ...(filters.OR || []), // Preserve existing `OR` filters
+        { title: { contains: search } },
+        { description: { contains: search } },
+        { keywords: { contains: search } },
+        { categories: { contains: search } },
+      ];
+    }
+    
+    
+    
+    
 
     if (search) {
       // Use 'contains' for substring matches
@@ -61,7 +79,7 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
         { title: { contains: search } },
         { description: { contains: search } },
         { keywords: { contains: search } },
-        { category: { name: { contains: search } } }, // Corrected
+        { categories: { contains: search } }, // Corrected
       ];
     }
 
@@ -78,10 +96,7 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
         title
         description
         keywords
-        category {
-          id
-          name
-        }
+        categories
         imageUrl
         rssFeedUrl
         syncTime

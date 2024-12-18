@@ -114,7 +114,9 @@ input UserCreateInput {
 type Podcast {
   id: ID!
   rssFeedUrl: String
-  category: Category
+  isFeatured: Boolean
+  featuredAt: DateTime
+  categories: String
   keywords: String
   syncTime: String
   lastSyncedAt: DateTime
@@ -129,6 +131,7 @@ type Podcast {
 
 input PodcastWhereUniqueInput {
   id: ID
+  rssFeedUrl: String
 }
 
 input PodcastWhereInput {
@@ -137,7 +140,9 @@ input PodcastWhereInput {
   NOT: [PodcastWhereInput!]
   id: IDFilter
   rssFeedUrl: StringFilter
-  category: CategoryWhereInput
+  isFeatured: BooleanFilter
+  featuredAt: DateTimeNullableFilter
+  categories: StringFilter
   keywords: StringFilter
   syncTime: StringFilter
   lastSyncedAt: DateTimeNullableFilter
@@ -149,6 +154,11 @@ input PodcastWhereInput {
   updatedAt: DateTimeNullableFilter
 }
 
+input BooleanFilter {
+  equals: Boolean
+  not: BooleanFilter
+}
+
 input EpisodeManyRelationFilter {
   every: EpisodeWhereInput
   some: EpisodeWhereInput
@@ -158,6 +168,9 @@ input EpisodeManyRelationFilter {
 input PodcastOrderByInput {
   id: OrderDirection
   rssFeedUrl: OrderDirection
+  isFeatured: OrderDirection
+  featuredAt: OrderDirection
+  categories: OrderDirection
   keywords: OrderDirection
   syncTime: OrderDirection
   lastSyncedAt: OrderDirection
@@ -170,7 +183,9 @@ input PodcastOrderByInput {
 
 input PodcastUpdateInput {
   rssFeedUrl: String
-  category: CategoryRelateToOneForUpdateInput
+  isFeatured: Boolean
+  featuredAt: DateTime
+  categories: String
   keywords: String
   syncTime: String
   lastSyncedAt: DateTime
@@ -180,12 +195,6 @@ input PodcastUpdateInput {
   episodes: EpisodeRelateToManyForUpdateInput
   createdAt: DateTime
   updatedAt: DateTime
-}
-
-input CategoryRelateToOneForUpdateInput {
-  create: CategoryCreateInput
-  connect: CategoryWhereUniqueInput
-  disconnect: Boolean
 }
 
 input EpisodeRelateToManyForUpdateInput {
@@ -202,7 +211,9 @@ input PodcastUpdateArgs {
 
 input PodcastCreateInput {
   rssFeedUrl: String
-  category: CategoryRelateToOneForCreateInput
+  isFeatured: Boolean
+  featuredAt: DateTime
+  categories: String
   keywords: String
   syncTime: String
   lastSyncedAt: DateTime
@@ -212,11 +223,6 @@ input PodcastCreateInput {
   episodes: EpisodeRelateToManyForCreateInput
   createdAt: DateTime
   updatedAt: DateTime
-}
-
-input CategoryRelateToOneForCreateInput {
-  create: CategoryCreateInput
-  connect: CategoryWhereUniqueInput
 }
 
 input EpisodeRelateToManyForCreateInput {
@@ -341,41 +347,6 @@ input PodcastRelateToOneForCreateInput {
   connect: PodcastWhereUniqueInput
 }
 
-type Category {
-  id: ID!
-  name: String
-}
-
-input CategoryWhereUniqueInput {
-  id: ID
-}
-
-input CategoryWhereInput {
-  AND: [CategoryWhereInput!]
-  OR: [CategoryWhereInput!]
-  NOT: [CategoryWhereInput!]
-  id: IDFilter
-  name: StringFilter
-}
-
-input CategoryOrderByInput {
-  id: OrderDirection
-  name: OrderDirection
-}
-
-input CategoryUpdateInput {
-  name: String
-}
-
-input CategoryUpdateArgs {
-  where: CategoryWhereUniqueInput!
-  data: CategoryUpdateInput!
-}
-
-input CategoryCreateInput {
-  name: String
-}
-
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -400,12 +371,6 @@ type Mutation {
   updateEpisodes(data: [EpisodeUpdateArgs!]!): [Episode]
   deleteEpisode(where: EpisodeWhereUniqueInput!): Episode
   deleteEpisodes(where: [EpisodeWhereUniqueInput!]!): [Episode]
-  createCategory(data: CategoryCreateInput!): Category
-  createCategories(data: [CategoryCreateInput!]!): [Category]
-  updateCategory(where: CategoryWhereUniqueInput!, data: CategoryUpdateInput!): Category
-  updateCategories(data: [CategoryUpdateArgs!]!): [Category]
-  deleteCategory(where: CategoryWhereUniqueInput!): Category
-  deleteCategories(where: [CategoryWhereUniqueInput!]!): [Category]
   endSession: Boolean!
   authenticateUserWithPassword(email: String!, password: String!): UserAuthenticationWithPasswordResult
   createInitialUser(data: CreateInitialUserInput!): UserAuthenticationWithPasswordSuccess!
@@ -438,9 +403,6 @@ type Query {
   episode(where: EpisodeWhereUniqueInput!): Episode
   episodes(where: EpisodeWhereInput! = {}, orderBy: [EpisodeOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: EpisodeWhereUniqueInput): [Episode!]
   episodesCount(where: EpisodeWhereInput! = {}): Int
-  category(where: CategoryWhereUniqueInput!): Category
-  categories(where: CategoryWhereInput! = {}, orderBy: [CategoryOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: CategoryWhereUniqueInput): [Category!]
-  categoriesCount(where: CategoryWhereInput! = {}): Int
   keystone: KeystoneMeta!
   authenticatedItem: AuthenticatedItem
 }

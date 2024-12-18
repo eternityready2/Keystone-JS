@@ -64,10 +64,7 @@ export const podcastInfoHandler = async (
       title 
       description 
       imageUrl 
-      category {
-        id
-        name
-      }`, // Adjust fields as needed
+      categories`, // Adjust fields as needed
     });
 
     if (!podcastData) {
