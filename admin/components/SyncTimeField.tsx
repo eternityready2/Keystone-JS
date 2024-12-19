@@ -8,7 +8,6 @@ const frequencies = [
   { label: 'Daily', value: 'daily' },
   { label: 'Weekly', value: 'weekly' },
   { label: 'Monthly', value: 'monthly' },
-  { label: 'Custom', value: 'custom' },
 ];
 
 const hours = Array.from({ length: 12 }, (_, i) => ({ label: `${i+1}`, value: `${i+1}` }));
@@ -25,7 +24,6 @@ const weeklyOptions = [
 ];
 
 const monthlyOptions = Array.from({ length: 31 }, (_, i) => ({ label: `${i+1}`, value: `${i+1}` }));
-const customOptions = Array.from({ length: 7 }, (_, i) => ({ label: `Start in ${i+1} days`, value: `${i+1}` }));
 
 export function Field({ field, value, onChange, autoFocus }: FieldProps<{ value: string }>) {
   const [frequency, hour, period, extra] = value ? value.split('|') : ['off', '1', 'am', ''];
@@ -41,8 +39,6 @@ export function Field({ field, value, onChange, autoFocus }: FieldProps<{ value:
       defaultExtra = weeklyOptions[0].value;
     } else if (selectedFreq === 'monthly') {
       defaultExtra = monthlyOptions[0].value;
-    } else if (selectedFreq === 'custom') {
-      defaultExtra = customOptions[0].value;
     }
     setValue(selectedFreq, '1', 'am', defaultExtra);
   };
@@ -65,16 +61,6 @@ export function Field({ field, value, onChange, autoFocus }: FieldProps<{ value:
             options={monthlyOptions}
             value={monthlyOptions.find(o => o.value === extra) || monthlyOptions[0]}
             onChange={val => setValue(frequency, hour, period, val?.value || monthlyOptions[0].value)}
-          />
-        </div>
-      );
-    } else if (frequency === 'custom') {
-      return (
-        <div style={{ flexGrow: 1 }}>
-          <Select
-            options={customOptions}
-            value={customOptions.find(o => o.value === extra) || customOptions[0]}
-            onChange={val => setValue(frequency, hour, period, val?.value || customOptions[0].value)}
           />
         </div>
       );
