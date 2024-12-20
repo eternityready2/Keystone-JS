@@ -18,6 +18,7 @@ export const latestPodcastsHandler = async (req: Request, res: Response, context
       // Fetch paginated podcasts
       const podcasts = await context.query.Podcast.findMany({
         query: `
+          id
           title
           description
           categories
