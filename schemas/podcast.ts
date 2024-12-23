@@ -108,15 +108,6 @@ export const Podcast = list({
         listView: { fieldMode: 'read' },
       }, isIndexed: true }),
   },
-  db: {
-    // Define compound uniqueness for podcast and episodeNumber
-    indexes: [
-      {
-        fields: ['podcast', 'title'],
-        unique: true,
-      },
-    ],
-  },
   
   hooks: {
     afterOperation: async ({ operation, item, context }) => {
