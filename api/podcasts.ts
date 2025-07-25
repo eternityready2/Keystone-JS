@@ -1,8 +1,8 @@
 // lib/podcasts.ts
 
-import { Request, Response } from 'express';
-import { KeystoneContext } from '@keystone-6/core/types';
-import { z } from 'zod';
+import { Request, Response } from "express";
+import { KeystoneContext } from "@keystone-6/core/types";
+import { z } from "zod";
 
 // Define a schema for query parameters using Zod for validation
 const querySchema = z.object({
@@ -16,26 +16,30 @@ const querySchema = z.object({
 const parseQueryParams = (req: Request) => {
   const parseResult = querySchema.safeParse(req.query);
   if (!parseResult.success) {
-    throw new Error('Invalid query parameters');
+    throw new Error("Invalid query parameters");
   }
 
-  const { category, search, page = '1', limit = '20' } = parseResult.data;
+  const { category, search, page = "1", limit = "20" } = parseResult.data;
 
   const parsedPage = parseInt(page, 10);
   const parsedLimit = parseInt(limit, 10);
 
   return {
-    category: typeof category === 'string' ? category.trim() : undefined,
-    search: typeof search === 'string' ? search.trim() : undefined,
+    category: typeof category === "string" ? category.trim() : undefined,
+    search: typeof search === "string" ? search.trim() : undefined,
     page: isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage,
     limit: isNaN(parsedLimit) || parsedLimit < 1 ? 20 : parsedLimit,
   };
 };
 
 // Handler function for /api/podcasts
-export const podcastsHandler = async (req: Request, res: Response, context: KeystoneContext) => {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+export const podcastsHandler = async (
+  req: Request,
+  res: Response,
+  context: KeystoneContext
+) => {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   let parsedParams;
@@ -52,26 +56,22 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
     const filters: any = {};
     if (category) {
       filters.OR = [
-        { categories: { equals: category } }, // Exact match
-        { categories: { contains: `${category},` } }, // First position
-        { categories: { contains: `,${category},` } }, // Middle position
-        { categories: { contains: `,${category}` } }, // Last position
+        { categories: { equals: category } },
+        { categories: { contains: `${category},` } },
+        { categories: { contains: `,${category},` } },
+        { categories: { contains: `,${category}` } },
       ];
     }
-    
+
     if (search) {
       filters.OR = [
-        ...(filters.OR || []), // Preserve existing `OR` filters
+        ...(filters.OR || []),
         { title: { contains: search } },
         { description: { contains: search } },
         { keywords: { contains: search } },
         { categories: { contains: search } },
       ];
     }
-    
-    
-    
-    
 
     if (search) {
       // Use 'contains' for substring matches
@@ -83,7 +83,7 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
       ];
     }
 
-    console.log('Applied Filters:', filters);
+    console.log("Applied Filters:", filters);
 
     // Pagination calculations
     const skip = (page - 1) * limit;
@@ -101,10 +101,11 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
         rssFeedUrl
         syncTime
         lastSyncedAt
+        slug
       `, // Adjust fields as needed
       take: limit,
       skip: skip,
-      orderBy: { title: 'desc' }, // Optional: order by creation date
+      orderBy: { title: "asc" }, // Optional: order by creation date
     });
 
     // Fetch total count for pagination
@@ -126,7 +127,9 @@ export const podcastsHandler = async (req: Request, res: Response, context: Keys
       },
     });
   } catch (error: any) {
-    console.error('Error fetching podcasts:', error);
-    res.status(500).json({ error: 'Failed to fetch podcasts', details: error.message });
+    console.error("Error fetching podcasts:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch podcasts", details: error.message });
   }
 };

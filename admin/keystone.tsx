@@ -1,8 +1,8 @@
 // admin/keystone.tsximport { render } from 'react-dom';
-import React from 'react';
-import { AdminUIProvider, FieldViews, Core } from '@keystone-6/core/admin-ui';
-import customFields from './customFields';
-import ViewEpisodesButton from './components/ViewEpisodesButton';
+import React from "react";
+import { AdminUIProvider, FieldViews, Core } from "@keystone-6/core/admin-ui";
+import customFields from "./customFields";
+import ViewEpisodesButton from "./components/ViewEpisodesButton";
 
 const customFieldViews = {
   ...FieldViews,
@@ -18,4 +18,4 @@ const App = () => (
   </AdminUIProvider>
 );
 
-render(<App />, document.getElementById('root'));
+render(<App />, document.getElementById("root"));

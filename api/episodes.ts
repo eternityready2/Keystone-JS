@@ -1,15 +1,10 @@
-// api/episodes.ts
+import { Request, Response } from "express";
+import { KeystoneContext } from "@keystone-6/core/types";
+import { z } from "zod";
 
-import { Request, Response } from 'express';
-import { KeystoneContext } from '@keystone-6/core/types';
-import { z } from 'zod';
-
-// Define allowed categories or other filters if needed
-const allowedCategories = ['technology', 'health', 'education', 'family']; // Adjust as needed
-
-// Define a schema for query parameters using Zod for validation
+// MUDANÇA 1: O schema agora valida APENAS os parâmetros da query string.
+// Removemos `podcast: z.string()` daqui.
 const episodesQuerySchema = z.object({
-  podcast: z.string(),
   season: z
     .string()
     .regex(/^\d+$/, { message: "Season must be a valid number." })
@@ -23,70 +18,42 @@ const episodesQuerySchema = z.object({
   page: z
     .string()
     .regex(/^\d+$/, { message: "Page must be a valid number." })
-    .optional(),
+    .default("1") // Usar default é mais limpo
+    .transform(Number),
   limit: z
     .string()
     .regex(/^\d+$/, { message: "Limit must be a valid number." })
-    .optional(),
+    .default("20") // Usar default é mais limpo
+    .transform(Number),
 });
 
-// Helper function to parse and validate query parameters
-const parseEpisodesQueryParams = (req: Request) => {
-  const parseResult = episodesQuerySchema.safeParse(req.query);
-  if (!parseResult.success) {
-    // Extract detailed validation errors
-    const errors = parseResult.error.errors.map((err) => ({
-      field: err.path.join('.'),
-      message: err.message,
-    }));
-    throw new Error(JSON.stringify(errors));
-  }
-
-  const { podcast, season, episode, search, page = '1', limit = '20' } = parseResult.data;
-
-  const parsedPage = parseInt(page, 10);
-  const parsedLimit = parseInt(limit, 10);
-
-  return {
-    podcast: podcast.trim(),
-    season: season === 0 || season > 0 ? season : 1,
-    episode: episode !== undefined ? (isNaN(episode) || episode < 1 ? undefined : episode) : undefined,
-    search: search ? search.trim() : undefined,
-    page: isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage,
-    limit: isNaN(parsedLimit) || parsedLimit < 1 ? 20 : parsedLimit,
-  };
-};
-
-// Handler function for /api/episodes
+// Handler function para a rota /api/episodes/:podcastId
 export const episodesHandler = async (
   req: Request,
   res: Response,
   context: KeystoneContext
 ) => {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
-  let parsedParams;
-  try {
-    parsedParams = parseEpisodesQueryParams(req);
-  } catch (validationError: any) {
-    // Parse the JSON stringified errors back to an object
-    let errorDetails;
-    try {
-      errorDetails = JSON.parse(validationError.message);
-    } catch {
-      errorDetails = [{ message: 'Invalid query parameters.' }];
-    }
-    return res.status(400).json({ error: 'Invalid query parameters', details: errorDetails });
+  // MUDANÇA 2: Obter o ID do podcast diretamente dos parâmetros da rota.
+  const { podcastId } = req.params;
+
+  if (!podcastId) {
+    return res
+      .status(400)
+      .json({ error: "Podcast ID is required in the URL path." });
   }
 
-  const { podcast, season, episode, search, page, limit } = parsedParams;
-
   try {
-    // Build filters based on query parameters
+    // MUDANÇA 3: Validar apenas os parâmetros de consulta (req.query).
+    const queryParams = episodesQuerySchema.parse(req.query);
+    const { season, episode, search, page, limit } = queryParams;
+
+    // MUDANÇA 4: Construir os filtros usando o `podcastId` da rota.
     const filters: any = {
-      podcast: { id: { equals: podcast } },
+      podcast: { slug: { equals: podcastId } }, // Usando o podcastId da rota
       season: { equals: season },
     };
 
@@ -95,19 +62,18 @@ export const episodesHandler = async (
     }
 
     if (search) {
-      // Use 'contains' for substring matches in title or description
       filters.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
       ];
     }
 
-    console.log('Applied Filters:', filters);
+    console.log("Applied Filters:", filters);
 
-    // Pagination calculations
+    // MUDANÇA 5: O `skip` é calculado com os valores já validados e convertidos.
     const skip = (page - 1) * limit;
 
-    // Fetch episodes with applied filters and pagination
+    // A busca no banco de dados continua igual.
     const episodes = await context.query.Episode.findMany({
       where: filters,
       query: `
@@ -122,23 +88,18 @@ export const episodesHandler = async (
         duration
         createdAt
         updatedAt
-      `, // Removed 'podcast' from the query string
+      `,
       take: limit,
       skip: skip,
-      orderBy: [         // First order by episode number ascending
-        { releaseDate: 'desc' },      // Then order by releaseDate ascending
-      ],
+      orderBy: [{ releaseDate: "desc" }],
     });
 
-    // Fetch total count for pagination
     const total = await context.query.Episode.count({
       where: filters,
     });
 
-    // Calculate total pages
     const totalPages = Math.ceil(total / limit);
 
-    // Respond with episodes data
     res.status(200).json({
       data: episodes,
       pagination: {
@@ -149,7 +110,53 @@ export const episodesHandler = async (
       },
     });
   } catch (error: any) {
-    console.error('Error fetching episodes:', error);
-    res.status(500).json({ error: 'Failed to fetch episodes', details: error.message });
+    // Se o erro for do Zod, ele será capturado aqui
+    if (error instanceof z.ZodError) {
+      return res
+        .status(400)
+        .json({ error: "Invalid query parameters", details: error.errors });
+    }
+
+    console.error("Error fetching episodes:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch episodes", details: error.message });
+  }
+};
+
+export const allEpisodesHandler = async (
+  req: Request,
+  res: Response,
+  context: KeystoneContext
+) => {
+  try {
+    const episodes = await context.query.Episode.findMany({
+      query: `
+        id
+        title
+        imageUrl
+        audioUrl
+        duration
+      `,
+      orderBy: [{ title: "asc" }],
+    });
+
+    const total = await context.query.Episode.count();
+
+    res.status(200).json({
+      total,
+      data: episodes,
+    });
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res
+        .status(400)
+        .json({ error: "Invalid query parameters", details: error.errors });
+    }
+
+    console.error("Error fetching episodes:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch episodes", details: error.message });
   }
 };

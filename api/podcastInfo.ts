@@ -1,12 +1,12 @@
 // api/podcastInfo.ts
 
-import { Request, Response } from 'express';
-import { KeystoneContext } from '@keystone-6/core/types';
-import { z } from 'zod';
+import { Request, Response } from "express";
+import { KeystoneContext } from "@keystone-6/core/types";
+import { z } from "zod";
 
 // Define a schema for query parameters using Zod for validation
 const podcastInfoQuerySchema = z.object({
-  podcast: z.string().min(1, { message: 'Podcast ID is required.' }),
+  podcast: z.string().min(1, { message: "Podcast ID is required." }),
 });
 
 // Helper function to parse and validate query parameters
@@ -15,7 +15,7 @@ const parsePodcastInfoQueryParams = (req: Request) => {
   if (!parseResult.success) {
     // Extract detailed validation errors
     const errors = parseResult.error.errors.map((err) => ({
-      field: err.path.join('.'),
+      field: err.path.join("."),
       message: err.message,
     }));
     throw new Error(JSON.stringify(errors));
@@ -35,8 +35,8 @@ export const podcastInfoHandler = async (
   context: KeystoneContext
 ) => {
   // Allow only GET requests
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed. Use GET.' });
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed. Use GET." });
   }
 
   let parsedParams;
@@ -48,9 +48,11 @@ export const podcastInfoHandler = async (
     try {
       errorDetails = JSON.parse(validationError.message);
     } catch {
-      errorDetails = [{ message: 'Invalid query parameters.' }];
+      errorDetails = [{ message: "Invalid query parameters." }];
     }
-    return res.status(400).json({ error: 'Invalid query parameters', details: errorDetails });
+    return res
+      .status(400)
+      .json({ error: "Invalid query parameters", details: errorDetails });
   }
 
   const { podcast } = parsedParams;
@@ -58,9 +60,10 @@ export const podcastInfoHandler = async (
   try {
     // Fetch podcast details
     const podcastData = await context.query.Podcast.findOne({
-      where: { id: podcast },
+      where: { slug: podcast },
       query: `
       id 
+      slug
       title 
       description 
       imageUrl 
@@ -68,18 +71,21 @@ export const podcastInfoHandler = async (
     });
 
     if (!podcastData) {
-      return res.status(404).json({ error: 'Podcast not found.' });
+      return res.status(404).json({ error: "Podcast not found." });
     }
 
     // Fetch total episodes
     const totalEpisodes = await context.query.Episode.count({
-      where: { podcast: { id: { equals: podcast } } },
+      where: { podcast: { id: { equals: podcastData.id } } },
     });
 
     // Fetch total seasons using distinct seasons
     const seasons = await context.query.Episode.findMany({
-      where: { podcast: { id: { equals: podcast } }, season: { not: { equals: 0 } } },
-      query: 'season',
+      where: {
+        podcast: { id: { equals: podcastData.id } },
+        season: { not: { equals: 0 } },
+      },
+      query: "season",
     });
 
     const uniqueSeasons = new Set<number>();
@@ -90,9 +96,13 @@ export const podcastInfoHandler = async (
     const totalSeasons = uniqueSeasons.size;
 
     // Check for unknown season (season = 0)
-    const hasUnknownSeason = await context.query.Episode.count({
-      where: { podcast: { id: { equals: podcast } }, season: { equals: 0 } },
-    }) > 0;
+    const hasUnknownSeason =
+      (await context.query.Episode.count({
+        where: {
+          podcast: { id: { equals: podcastData.id } },
+          season: { equals: 0 },
+        },
+      })) > 0;
 
     // Respond with podcast details and aggregated data
     res.status(200).json({
@@ -104,7 +114,9 @@ export const podcastInfoHandler = async (
       },
     });
   } catch (error: any) {
-    console.error('Error fetching podcast info:', error);
-    res.status(500).json({ error: 'Failed to fetch podcast info', details: error.message });
+    console.error("Error fetching podcast info:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch podcast info", details: error.message });
   }
 };

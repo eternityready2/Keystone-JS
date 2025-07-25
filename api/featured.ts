@@ -1,27 +1,36 @@
-export const featuredPodcastsHandler = async (req: Request, res: Response, context: KeystoneContext) => {
-    if (req.method !== 'GET') {
-      return res.status(405).json({ error: 'Method not allowed' });
-    }
-  
-    try {
-      // Fetch featured podcasts in random order
-      const podcasts = await context.query.Podcast.findMany({
-        where: { isFeatured:  { equals: true } },
-        query: `
+import { KeystoneContext } from "@keystone-6/core/types";
+
+export const featuredPodcastsHandler = async (
+  req: Request,
+  res: Response,
+  context: KeystoneContext
+) => {
+  if (req.method !== "GET") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    // Fetch featured podcasts in random order
+    const podcasts = await context.query.Podcast.findMany({
+      where: { isFeatured: { equals: true } },
+      query: `
           id
           title
           description
           categories
           imageUrl
+          slug
         `,
-      });
-  
-      const shuffledPodcasts = podcasts.sort(() => Math.random() - 0.5);
+    });
 
-      res.status(200).json({ data: shuffledPodcasts });
-    } catch (error: any) {
-      console.error('Error fetching featured podcasts:', error);
-      res.status(500).json({ error: 'Failed to fetch featured podcasts', details: error.message });
-    }
-  };
-  
+    const shuffledPodcasts = podcasts.sort(() => Math.random() - 0.5);
+
+    res.status(200).json({ data: shuffledPodcasts });
+  } catch (error: any) {
+    console.error("Error fetching featured podcasts:", error);
+    res.status(500).json({
+      error: "Failed to fetch featured podcasts",
+      details: error.message,
+    });
+  }
+};

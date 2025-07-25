@@ -29,6 +29,7 @@ model Podcast {
   syncTime     String    @default("")
   lastSyncedAt DateTime?
   title        String    @default("")
+  slug         String    @unique @default("")
   description  String    @default("") @mysql.LongText
   imageUrl     String    @default("")
   episodes     Episode[] @relation("Episode_podcast")

@@ -1,7 +1,8 @@
 import cron from "node-cron";
 import syncEpisodes from "./api/sync"; // Assume you already have a syncEpisodes function
+import type { KeystoneContext } from "@keystone-6/core/types";
 
-async function syncPodcasts(context) {
+async function syncPodcasts(context: KeystoneContext) {
   // Schedule the task to run every minute for testing
   cron.schedule("0 * * * *", async () => {
     console.log(`Scheduler running at ${new Date().toISOString()}`);
@@ -25,10 +26,10 @@ async function syncPodcasts(context) {
 
       const todayUTCString = now.toISOString().slice(0, 10);
 
-      function convertTo24Hour(hourStr, period) {
+      function convertTo24Hour(hourStr: string, period: string) {
         let hour = parseInt(hourStr, 10);
         if (period.toLowerCase() === "am" && hour === 12) {
-          return 0; // 12 AM é 0h
+          return 0;
         }
         if (period.toLowerCase() === "pm" && hour !== 12) {
           return hour + 12;
@@ -52,15 +53,15 @@ async function syncPodcasts(context) {
           ? new Date(lastSyncedAt).toISOString().slice(0, 10)
           : null;
 
-        if (
-          (frequency === "daily" ||
-            frequency === "weekly" ||
-            frequency === "monthly") &&
-          lastSyncDayUTCString === todayUTCString
-        ) {
-          console.log(`Skipping sync for ${id}, already synced today.`);
-          continue;
-        }
+        // if (
+        //   frequency === "daily" ||
+        //   frequency === "weekly" ||
+        //   frequency === "monthly" ||
+        //   (frequency === "custom" && lastSyncDayUTCString === todayUTCString)
+        // ) {
+        //   console.log(`Skipping sync for ${id}, already synced today.`);
+        //   continue;
+        // }
 
         if (frequency === "daily") {
           console.log(`Syncing daily podcast: ${podcast.id}`);
@@ -75,7 +76,7 @@ async function syncPodcasts(context) {
             fri: 5,
             sat: 6,
           };
-          if (dayMap[extra] === currentDay) {
+          if (dayMap[extra as keyof typeof dayMap] === currentDay) {
             console.log(`Syncing weekly podcast: ${podcast.id}`);
             await syncEpisodes(podcast.id, context); // Run weekly sync logic
           }
@@ -102,7 +103,7 @@ async function syncPodcasts(context) {
             ? new Date(lastSyncedAt)
             : new Date(0);
           const diffDays = Math.floor(
-            (now - lastSyncDate) / (1000 * 60 * 60 * 24)
+            (now.getTime() - lastSyncDate.getTime()) / (1000 * 60 * 60 * 24)
           );
 
           if (diffDays >= requiredDays) {

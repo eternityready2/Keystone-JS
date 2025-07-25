@@ -121,6 +121,7 @@ type Podcast {
   syncTime: String
   lastSyncedAt: DateTime
   title: String
+  slug: String
   description: String
   imageUrl: String
   episodes(where: EpisodeWhereInput! = {}, orderBy: [EpisodeOrderByInput!]! = [], take: Int, skip: Int! = 0, cursor: EpisodeWhereUniqueInput): [Episode!]
@@ -132,6 +133,7 @@ type Podcast {
 input PodcastWhereUniqueInput {
   id: ID
   rssFeedUrl: String
+  slug: String
 }
 
 input PodcastWhereInput {
@@ -147,6 +149,7 @@ input PodcastWhereInput {
   syncTime: StringFilter
   lastSyncedAt: DateTimeNullableFilter
   title: StringFilter
+  slug: StringFilter
   description: StringFilter
   imageUrl: StringFilter
   episodes: EpisodeManyRelationFilter
@@ -175,6 +178,7 @@ input PodcastOrderByInput {
   syncTime: OrderDirection
   lastSyncedAt: OrderDirection
   title: OrderDirection
+  slug: OrderDirection
   description: OrderDirection
   imageUrl: OrderDirection
   createdAt: OrderDirection
@@ -190,6 +194,7 @@ input PodcastUpdateInput {
   syncTime: String
   lastSyncedAt: DateTime
   title: String
+  slug: String
   description: String
   imageUrl: String
   episodes: EpisodeRelateToManyForUpdateInput
@@ -218,6 +223,7 @@ input PodcastCreateInput {
   syncTime: String
   lastSyncedAt: DateTime
   title: String
+  slug: String
   description: String
   imageUrl: String
   episodes: EpisodeRelateToManyForCreateInput
