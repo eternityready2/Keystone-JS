@@ -1,8 +1,6 @@
-
 # 🧱 Eternity Ready Podcast Admin – Keystone.js Source Code
 
 > The application runs by default on port `3000` or on the port entered in .env during development or production.
-
 
 ## 🚧 Setup (Development)
 
@@ -26,6 +24,7 @@ REVALIDATION_TOKEN=eternityready
 ```
 
 > Example:
+>
 > - `DATABASE_URL`: `mysql://user:password@localhost:3306/dbname`
 > - `ALLOWED_ORIGINS`: URLs allowed to make requests (e.g., `https://yourdomain.com,http://localhost:3000`)
 > - `PORT`: Port to run the app (default is 3000)
