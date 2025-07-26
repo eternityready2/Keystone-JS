@@ -5,6 +5,8 @@
 
 After cloning the repository, follow these steps to run the Keystone CMS locally:
 
+> The application runs by default on port `3000` or on the port entered in .env during development or production.
+
 1. **Install Node.js dependencies:**
 
 ```bash
@@ -14,12 +16,12 @@ npm install
 2. **Create a `.env` file in the root directory with the following variables:**
 
 ```env
-DATABASE_URL=your_mysql_connection_url
-ALLOWED_ORIGINS=comma_separated_allowed_origins
-PORT=desired_port_number (optional)
+DATABASE_URL=mysql://keystone:ZWHb78t[XVu8fJ@u@localhost:3306/keystone
+ALLOWED_ORIGINS=https://keystone.eternityready.com,https://podcasts.eternityready.com,http://localhost:3001
+PORT=3000 (optional)
 NODE_ENV=production
 DEBUG=keystone*
-REVALIDATION_TOKEN=your_custom_revalidation_token
+REVALIDATION_TOKEN=eternityready
 ```
 
 > Example:
