@@ -3,6 +3,5 @@ node_modules
 keystone.db
 *.log
 public/images
-.env
 package-lock.json 
 package.json
