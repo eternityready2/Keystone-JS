@@ -1,11 +1,12 @@
 
 # 🧱 Eternity Ready Podcast Admin – Keystone.js Source Code
 
+> The application runs by default on port `3000` or on the port entered in .env during development or production.
+
+
 ## 🚧 Setup (Development)
 
 After cloning the repository, follow these steps to run the Keystone CMS locally:
-
-> The application runs by default on port `3000` or on the port entered in .env during development or production.
 
 1. **Install Node.js dependencies:**
 
