@@ -68,6 +68,9 @@ export const Episode = list({
       },
     }),
     audioUrl: text({
+      db: {
+        nativeType: 'LongText',
+      },
       ui: {
         createView: { fieldMode: 'hidden' },
         itemView: { fieldMode: 'read' },
