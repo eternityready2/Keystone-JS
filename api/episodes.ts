@@ -88,6 +88,7 @@ export const episodesHandler = async (
         duration
         createdAt
         updatedAt
+        podcast { keywords }
       `,
       take: limit,
       skip: skip,
@@ -137,6 +138,7 @@ export const allEpisodesHandler = async (
         imageUrl
         audioUrl
         duration
+        podcast { keywords }
       `,
       orderBy: [{ title: "asc" }],
     });
