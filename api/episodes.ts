@@ -138,7 +138,10 @@ export const allEpisodesHandler = async (
         imageUrl
         audioUrl
         duration
-        podcast { keywords }
+        podcast {
+          title
+          keywords 
+        }
       `,
       orderBy: [{ title: "asc" }],
     });
