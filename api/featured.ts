@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import { KeystoneContext } from "@keystone-6/core/types";
 
 export const featuredPodcastsHandler = async (
@@ -20,12 +21,11 @@ export const featuredPodcastsHandler = async (
           categories
           imageUrl
           slug
+          featuredAt
         `,
     });
 
-    const shuffledPodcasts = podcasts.sort(() => Math.random() - 0.5);
-
-    res.status(200).json({ data: shuffledPodcasts });
+    res.status(200).json({ data: podcasts });
   } catch (error: any) {
     console.error("Error fetching featured podcasts:", error);
     res.status(500).json({

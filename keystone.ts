@@ -149,10 +149,6 @@ export default withAuth(
           await featuredPodcastsHandler(req, res, context);
         });
 
-        app.get("/api/categories", async (req: Request, res: Response) => {
-          await categoriesHandler(req, res, context);
-        });
-
         // Define the /api/seasons route and delegate to seasonsHandler
         app.get("/api/latestPodcasts", async (req: Request, res: Response) => {
           await latestPodcastsHandler(req, res, context);

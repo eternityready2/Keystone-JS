@@ -26,8 +26,9 @@ async function syncPodcasts(context: KeystoneContext) {
 
       const todayUTCString = now.toISOString().slice(0, 10);
 
-      function convertTo24Hour(hourStr: string, period: string) {
+      function convertTo24Hour(hourStr: string, period: string): number | null {
         let hour = parseInt(hourStr, 10);
+        if (isNaN(hour) || hour < 1 || hour > 12) return null;
         if (period.toLowerCase() === "am" && hour === 12) {
           return 0;
         }
@@ -46,6 +47,11 @@ async function syncPodcasts(context: KeystoneContext) {
 
         // Convert hour to 24-hour format
         const scheduledHour = convertTo24Hour(hour, period);
+
+        if (scheduledHour === null) {
+          console.warn(`Invalid syncTime hour for podcast ${id}: "${hour} ${period}"`);
+          continue;
+        }
 
         if (scheduledHour !== currentHour) continue;
 

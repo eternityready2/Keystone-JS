@@ -1,3 +1,4 @@
+import { Request, Response } from "express";
 import { KeystoneContext } from "@keystone-6/core/types";
 
 export const latestPodcastsHandler = async (
@@ -41,12 +42,9 @@ export const latestPodcastsHandler = async (
     const total = await context.query.Podcast.count();
     const totalPages = Math.ceil(total / validatedLimit);
 
-    // Randomize the order
-    const randomizedPodcasts = podcasts.sort(() => Math.random() - 0.5);
-
-    // Respond with paginated data
+    // Respond with paginated data (already ordered by createdAt desc)
     res.status(200).json({
-      data: randomizedPodcasts,
+      data: podcasts,
       pagination: {
         total,
         page: validatedPage,

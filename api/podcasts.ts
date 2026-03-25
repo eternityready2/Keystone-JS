@@ -73,16 +73,6 @@ export const podcastsHandler = async (
       ];
     }
 
-    if (search) {
-      // Use 'contains' for substring matches
-      filters.OR = [
-        { title: { contains: search } },
-        { description: { contains: search } },
-        { keywords: { contains: search } },
-        { categories: { contains: search } }, // Corrected
-      ];
-    }
-
     console.log("Applied Filters:", filters);
 
     // Pagination calculations

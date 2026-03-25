@@ -8,7 +8,8 @@ const episodesQuerySchema = z.object({
   season: z
     .string()
     .regex(/^\d+$/, { message: "Season must be a valid number." })
-    .transform((val) => parseInt(val, 10)),
+    .transform((val) => parseInt(val, 10))
+    .optional(),
   episode: z
     .string()
     .regex(/^\d+$/, { message: "Episode must be a valid number." })
@@ -37,13 +38,13 @@ export const episodesHandler = async (
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // MUDANÇA 2: Obter o ID do podcast diretamente dos parâmetros da rota.
-  const { podcastId } = req.params;
+  // MUDANÇA 2: Obter o slug do podcast diretamente dos parâmetros da rota.
+  const podcastSlug = req.params.podcastId;
 
-  if (!podcastId) {
+  if (!podcastSlug) {
     return res
       .status(400)
-      .json({ error: "Podcast ID is required in the URL path." });
+      .json({ error: "Podcast slug is required in the URL path." });
   }
 
   try {
@@ -51,11 +52,14 @@ export const episodesHandler = async (
     const queryParams = episodesQuerySchema.parse(req.query);
     const { season, episode, search, page, limit } = queryParams;
 
-    // MUDANÇA 4: Construir os filtros usando o `podcastId` da rota.
+    // MUDANÇA 4: Construir os filtros usando o slug do podcast da rota.
     const filters: any = {
-      podcast: { slug: { equals: podcastId } }, // Usando o podcastId da rota
-      season: { equals: season },
+      podcast: { slug: { equals: podcastSlug } }, // Usando o slug da rota
     };
+
+    if (season !== undefined) {
+      filters.season = { equals: season };
+    }
 
     if (episode !== undefined) {
       filters.episode = { equals: episode };
