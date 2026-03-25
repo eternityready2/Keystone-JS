@@ -67,33 +67,12 @@ export default withAuth(
         console.log("Scheduler started.");
         app.use(
           cors({
-            origin: function (origin, callback) {
-              // Allow requests with no origin (like mobile apps or curl requests)
-              if (!origin) return callback(null, true);
-              if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-              } else {
-                return callback(new Error("Not allowed by CORS"));
-              }
-            },
+            origin: true,
             methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
             allowedHeaders: ["Content-Type", "Authorization"],
-            credentials: true, // Enable credentials
+            credentials: true,
           })
         );
-
-        // Apply rate limiting to /api/podcasts and /api/categories if needed
-        // app.use('/api/podcasts', apiLimiter);
-        // app.use('/api/categories', apiLimiter); // Apply the same rate limiter
-
-        // Handle CORS errors
-        app.use((err, req, res, next) => {
-          if (err instanceof Error && err.message === "Not allowed by CORS") {
-            res.status(403).json({ error: "CORS Error: Not allowed by CORS" });
-          } else {
-            next(err);
-          }
-        });
 
         // Add JSON body parser middleware
         app.use(express.json());
