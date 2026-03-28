@@ -26,7 +26,7 @@ const episodesQuerySchema = z.object({
     .regex(/^\d+$/, { message: "Limit must be a valid number." })
     .default("20")
     .transform(Number)
-    .pipe(z.number().min(1).max(100)),
+    .pipe(z.number().min(1).max(10000)),
 });
 
 // Handler function para a rota /api/episodes/:podcastId
