@@ -159,10 +159,10 @@ export default withAuth(
         );
 
         app.get("/api/admin/memoryLogs", async (req, res) => {
-          // const session = await context.session;
-          // if (!session) {
-          //   return res.status(401).json({ error: 'Not authorized' });
-          // }
+          const session = await context.session;
+          if (!session) {
+            return res.status(401).json({ error: 'Not authorized' });
+          }
 
           const logs = getMemoryLogs();
           return res.json(logs.reverse());
