@@ -43,7 +43,6 @@ export const categoriesHandler = async (
     console.error('Error fetching categories:', error);
     res.status(500).json({
       error: 'Failed to fetch categories.',
-      details: error.message,
     });
   }
 };

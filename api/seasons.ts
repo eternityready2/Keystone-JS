@@ -80,6 +80,6 @@ export const seasonsHandler = async (
     });
   } catch (error: any) {
     console.error('Error fetching seasons:', error);
-    res.status(500).json({ error: 'Failed to fetch seasons', details: error.message });
+    res.status(500).json({ error: 'Failed to fetch seasons' });
   }
 };

@@ -30,7 +30,6 @@ export const featuredPodcastsHandler = async (
     console.error("Error fetching featured podcasts:", error);
     res.status(500).json({
       error: "Failed to fetch featured podcasts",
-      details: error.message,
     });
   }
 };

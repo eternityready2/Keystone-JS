@@ -126,7 +126,7 @@ export const episodesHandler = async (
     console.error("Error fetching episodes:", error);
     res
       .status(500)
-      .json({ error: "Failed to fetch episodes", details: error.message });
+      .json({ error: "Failed to fetch episodes" });
   }
 };
 
@@ -167,6 +167,6 @@ export const allEpisodesHandler = async (
     console.error("Error fetching episodes:", error);
     res
       .status(500)
-      .json({ error: "Failed to fetch episodes", details: error.message });
+      .json({ error: "Failed to fetch episodes" });
   }
 };

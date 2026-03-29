@@ -257,37 +257,39 @@ const syncEpisodes = async (podcastId: string, context: any) => {
       })
     );
 
-    // Update or create episodes in the database
+    // Update or create episodes in the database (create-first upsert to avoid TOCTOU race)
     for (const episode of parsedEpisodes) {
       try {
-        // const slug = generateSlug(episode.title);
-        const existingEpisodes = await context.query.Episode.findMany({
-          where: {
-            podcast: { id: { equals: podcastId } },
-            title: { equals: episode.title },
-          },
-          query: "id",
-        });
-
-        if (existingEpisodes.length > 0) {
-          const { slug, ...updateData } = episode;
-          // Update existing episode
-          await context.query.Episode.updateOne({
-            where: { id: existingEpisodes[0].id },
-            data: updateData,
-          });
-          console.log(`Updated episode: ${episode.title}`);
-        } else {
-          console.log("Creating episodee");
-          // Create new episode
+        try {
+          // Try creating first — avoids race where two syncs check simultaneously
           await context.query.Episode.createOne({
             data: {
               ...episode,
-              // slug: slug,
               podcast: { connect: { id: podcastId } },
             },
           });
           console.log(`Created new episode: ${episode.title}`);
+        } catch (createErr: any) {
+          // Unique constraint or already exists — update instead
+          const existingEpisodes = await context.query.Episode.findMany({
+            where: {
+              podcast: { id: { equals: podcastId } },
+              title: { equals: episode.title },
+            },
+            query: "id",
+          });
+
+          if (existingEpisodes.length > 0) {
+            const { slug, ...updateData } = episode;
+            await context.query.Episode.updateOne({
+              where: { id: existingEpisodes[0].id },
+              data: updateData,
+            });
+            console.log(`Updated episode: ${episode.title}`);
+          } else {
+            // Re-throw if it wasn't a duplicate issue
+            throw createErr;
+          }
         }
       } catch (error) {
         console.error(

@@ -120,6 +120,6 @@ export const podcastsHandler = async (
     console.error("Error fetching podcasts:", error);
     res
       .status(500)
-      .json({ error: "Failed to fetch podcasts", details: error.message });
+      .json({ error: "Failed to fetch podcasts" });
   }
 };

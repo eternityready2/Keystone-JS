@@ -58,7 +58,6 @@ export const latestPodcastsHandler = async (
       .status(500)
       .json({
         error: "Failed to fetch latest podcasts",
-        details: error.message,
       });
   }
 };
