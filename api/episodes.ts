@@ -130,32 +130,76 @@ export const episodesHandler = async (
   }
 };
 
+const allEpisodesQuerySchema = z.object({
+  page: z
+    .string()
+    .regex(/^\d+$/, { message: "Page must be a valid number." })
+    .default("1")
+    .transform(Number),
+  limit: z
+    .string()
+    .regex(/^\d+$/, { message: "Limit must be a valid number." })
+    .default("24")
+    .transform(Number)
+    .pipe(z.number().min(1).max(100)),
+  search: z.string().optional(),
+  category: z.string().optional(),
+});
+
 export const allEpisodesHandler = async (
   req: Request,
   res: Response,
   context: KeystoneContext
 ) => {
   try {
-    const episodes = await context.query.Episode.findMany({
-      query: `
-        id
-        title
-        imageUrl
-        audioUrl
-        duration
-        podcast {
-          title
-          keywords 
-        }
-      `,
-      orderBy: [{ title: "asc" }],
-    });
+    const queryParams = allEpisodesQuerySchema.parse(req.query);
+    const { page, limit, search, category } = queryParams;
+    const skip = (page - 1) * limit;
 
-    const total = await context.query.Episode.count();
+    const filters: any = {};
+
+    if (search) {
+      filters.title = { contains: search, mode: "insensitive" };
+    }
+
+    if (category) {
+      filters.podcast = {
+        categories: { contains: category, mode: "insensitive" },
+      };
+    }
+
+    const [episodes, total] = await Promise.all([
+      context.query.Episode.findMany({
+        where: filters,
+        query: `
+          id
+          title
+          imageUrl
+          audioUrl
+          podcast {
+            id
+            title
+            slug
+            categories
+          }
+        `,
+        take: limit,
+        skip,
+        orderBy: [{ title: "asc" }],
+      }),
+      context.query.Episode.count({ where: filters }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
-      total,
       data: episodes,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+      },
     });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
@@ -165,8 +209,6 @@ export const allEpisodesHandler = async (
     }
 
     console.error("Error fetching episodes:", error);
-    res
-      .status(500)
-      .json({ error: "Failed to fetch episodes" });
+    res.status(500).json({ error: "Failed to fetch episodes" });
   }
 };
