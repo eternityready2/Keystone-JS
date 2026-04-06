@@ -55,8 +55,12 @@ const downloadAndSaveImage = async (
       const urlPath = new URL(imageUrl).pathname;
       const originalFileName = path.basename(urlPath);
       const fileExtension = path.extname(originalFileName).toLowerCase();
-      const fileNameWithoutExt = path.basename(originalFileName, fileExtension);
-      const optimizedFileName = `${fileNameWithoutExt}.webp`; // Convert all images to WebP for consistency
+      const rawName = decodeURIComponent(path.basename(originalFileName, fileExtension));
+      const sanitizedName = rawName
+        .replace(/[^a-zA-Z0-9-_]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "") || "image";
+      const optimizedFileName = `${sanitizedName}.webp`; // Convert all images to WebP for consistency
       const filePath = path.join(savePath, optimizedFileName);
 
       // Ensure the save directory exists
@@ -133,7 +137,7 @@ const deleteUnusedImages = async (
 const syncEpisodes = async (podcastId: string, context: any) => {
   try {
     async function notifyFrontendOfUpdate() {
-      const revalidationUrl = `https://podcasts.eternityready.com/api/revalidate?secret=${process.env.REVALIDATION_TOKEN}`;
+      const revalidationUrl = `https://podcasts.eternityready.com/api?secret=${process.env.REVALIDATION_TOKEN}`;
       try {
         await fetch(revalidationUrl, { method: "POST" });
         console.log("Frontend cache successfully revalidated.");
